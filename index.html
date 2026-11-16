@@ -1,0 +1,2564 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LiftNote // Registro de Entrenamiento</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-up { animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.8); cursor: pointer; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-emerald-500/30 selection:text-emerald-200 min-h-screen">
+
+    <!-- Contenedor Principal Mobile-First -->
+    <div class="max-w-md mx-auto min-h-screen flex flex-col bg-slate-950 border-x border-slate-900/80 shadow-2xl relative pb-24">
+        
+        <!-- Header Sticky -->
+        <header class="sticky top-0 z-30 bg-slate-950/95 backdrop-blur-md border-b border-slate-800/80 px-4 pt-3.5 pb-3 space-y-2.5">
+            <!-- Top Bar: Logo + Selector de Gimnasio -->
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 shrink-0">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                        <i data-lucide="dumbbell" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base font-extrabold tracking-tight text-white leading-none">Lift<span class="text-emerald-400">Note</span></h1>
+                        <p class="text-[10px] text-slate-400 mt-0.5" id="headerSubtitle">Entrenamiento</p>
+                    </div>
+                </div>
+
+                <!-- Selector de Gimnasio / Sede -->
+                <div class="flex items-center gap-1.5 min-w-0">
+                    <div class="relative min-w-0">
+                        <select id="gymSelect" onchange="changeGym(this.value)" class="appearance-none bg-slate-900 border border-slate-700/80 text-emerald-400 text-xs font-semibold rounded-xl pl-3 pr-7 py-1.5 max-w-[160px] truncate focus:outline-none focus:ring-2 focus:ring-emerald-500/40">
+                            <!-- Opciones por JS -->
+                        </select>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    </div>
+                    <button onclick="openGymModal()" class="p-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white active:scale-95 transition" title="Gestionar Gimnasios">
+                        <i data-lucide="map-pin" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- ==================== MODAL: GESTIÓN DE GIMNASIOS / SEDES ==================== -->
+        <div id="gymModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm">
+            <div class="w-full max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl animate-slide-up max-h-[85vh] flex flex-col">
+                <div class="px-5 pt-4 pb-3 border-b border-slate-800 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-white">Gestionar Gimnasios y Sedes</h3>
+                        <p class="text-xs text-slate-400">Agrega o elimina tus lugares de entrenamiento</p>
+                    </div>
+                    <button onclick="closeGymModal()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div class="p-4 space-y-3.5 overflow-y-auto flex-1">
+                    <div>
+                        <label class="text-xs font-semibold text-slate-400 block mb-1">Nueva Sede / Gimnasio</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="newGymInput" placeholder="Ej: Sede Norte o Gimnasio Club" class="flex-1 bg-slate-950 border border-slate-800 text-sm text-white rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-500">
+                            <button onclick="addNewGym()" class="px-3.5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1 active:scale-95 transition">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Agregar
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-2">Sedes guardadas</span>
+                        <div id="gymManageList" class="space-y-2">
+                            <!-- Lista por JS -->
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-slate-800 flex justify-end">
+                    <button onclick="closeGymModal()" class="w-full py-2.5 rounded-xl bg-slate-800 text-slate-300 font-semibold text-sm">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== VISTA 1: ENTRENAR ==================== -->
+        <section id="view-train" class="flex-1 px-4 py-4 space-y-4">
+            <!-- Selector de Rutina Activa -->
+            <div class="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-3.5 space-y-2.5">
+                <div class="flex items-center justify-between">
+                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <i data-lucide="clipboard-list" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        Rutina Activa
+                    </label>
+                    <button onclick="switchTab('routines')" class="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300">
+                        Gestionar Rutinas
+                    </button>
+                </div>
+                <div class="relative">
+                    <select id="activeRoutineSelect" onchange="changeActiveRoutine(this.value)" class="w-full appearance-none bg-slate-950 border border-slate-700/80 text-white text-sm font-semibold rounded-xl pl-3.5 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/40">
+                        <!-- Opciones por JS -->
+                    </select>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+            </div>
+
+            <!-- Lista de Ejercicios de la Rutina -->
+            <div id="trainExerciseList" class="space-y-3">
+                <!-- Tarjetas generadas por JS -->
+            </div>
+
+            <!-- Botón para agregar ejercicio extra a la sesión actual -->
+            <button onclick="openSwapModal(null, true)" class="w-full py-3 rounded-2xl border border-dashed border-slate-700 hover:border-emerald-500/50 hover:bg-emerald-500/5 text-slate-300 hover:text-emerald-400 text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-[0.99] transition">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                Agregar ejercicio extra a esta sesión
+            </button>
+        </section>
+
+        <!-- ==================== VISTA 2: RUTINAS (CRUD) ==================== -->
+        <section id="view-routines" class="hidden flex-1 px-4 py-4 space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-white">Mis Rutinas</h2>
+                    <p class="text-xs text-slate-400">Crea, edita o elimina tus planes</p>
+                </div>
+                <button onclick="openRoutineEditor()" class="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 active:scale-95 transition">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    Nueva Rutina
+                </button>
+            </div>
+            <div id="routinesCrudList" class="space-y-3">
+                <!-- Tarjetas de rutinas por JS -->
+            </div>
+        </section>
+
+        <!-- ==================== MODAL 3: GESTOR / EDITOR DE RUTINAS ==================== -->
+        <div id="routineEditorModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm">
+            <div class="w-full max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl animate-slide-up max-h-[90vh] flex flex-col">
+                <div class="px-5 pt-4 pb-3 border-b border-slate-800 flex items-center justify-between">
+                    <h3 id="routineEditorTitle" class="text-base font-bold text-white">Nueva Rutina</h3>
+                    <button onclick="closeRoutineEditor()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div class="p-4 space-y-3.5 overflow-y-auto flex-1">
+                    <div>
+                        <label class="text-xs font-semibold text-slate-400 block mb-1">Nombre de la Rutina *</label>
+                        <input type="text" id="routineNameInput" placeholder="Ej: Rutina Piernas Enfasis Cuádriceps" class="w-full bg-slate-950 border border-slate-800 text-sm text-white rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-slate-400 block mb-1">Agregar Ejercicio</label>
+                        <div class="mb-2">
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block mb-1.5">Filtrar por grupo muscular (opción múltiple)</span>
+                            <div id="routineMuscleFilterChips" class="flex flex-wrap gap-1.5">
+                                <!-- Chips generados por JS -->
+                            </div>
+                        </div>
+                        <div class="flex gap-2 items-center">
+                            <select id="routineAddExerciseSelect" class="flex-1 min-w-0 truncate bg-slate-950 border border-slate-800 text-xs text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500">
+                                <!-- Opciones por JS -->
+                            </select>
+                            <button onclick="addExerciseToRoutineEditor()" class="shrink-0 px-3.5 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold text-xs flex items-center gap-1 active:scale-95 transition">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Agregar
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-2">Ejercicios en la rutina</span>
+                        <div id="routineEditorExercisesList" class="space-y-2">
+                            <!-- Lista por JS -->
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-slate-800 flex gap-3">
+                    <button onclick="closeRoutineEditor()" class="w-1/3 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-semibold text-sm">Cancelar</button>
+                    <button onclick="saveRoutine()" class="w-2/3 py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-bold text-sm">Guardar Rutina</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== VISTA 3: HISTORIAL ==================== -->
+        <section id="view-history" class="hidden flex-1 px-4 py-4 space-y-4">
+            <div class="flex items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-lg font-bold text-white">Historial</h2>
+                    <p class="text-xs text-slate-400">Sede activa: <span id="historyGymName" class="text-emerald-400 font-semibold"></span></p>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <select id="historyFilterGym" onchange="renderHistoryView()" class="bg-slate-900 border border-slate-800 text-xs text-slate-300 rounded-xl px-2.5 py-2 focus:outline-none">
+                        <option value="current">Solo sede actual</option>
+                        <option value="all">Todas las sedes</option>
+                    </select>
+                    <button onclick="openDateFilterModal()" id="dateFilterBtn" class="relative p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-emerald-400 transition" title="Filtrar por fecha">
+                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                        <span id="dateFilterDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-400"></span>
+                    </button>
+                    <!-- Menú de 3 puntos para Backup y CSV -->
+                    <div class="relative">
+                        <button onclick="toggleHistoryMenu(event)" class="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition" title="Más opciones">
+                            <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                        </button>
+                        <div id="historyMoreMenu" class="hidden absolute right-0 mt-1.5 w-52 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl py-1.5 z-40">
+                            <button onclick="closeHistoryMenu(); exportFilteredCSV()" class="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-sky-400 hover:bg-slate-800 flex items-center gap-2">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                                Exportar CSV (vista actual)
+                            </button>
+                            <div class="my-1 border-t border-slate-800"></div>
+                            <button onclick="closeHistoryMenu(); exportBackup()" class="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-emerald-400 hover:bg-slate-800 flex items-center gap-2">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                Exportar Backup
+                            </button>
+                            <button onclick="closeHistoryMenu(); document.getElementById('importBackupInput').click()" class="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-slate-200 hover:bg-slate-800 flex items-center gap-2">
+                                <i data-lucide="upload" class="w-4 h-4"></i>
+                                Importar Backup
+                            </button>
+                        </div>
+                    </div>
+                    <input type="file" id="importBackupInput" accept=".json" class="hidden" onchange="importBackup(event)">
+                </div>
+            </div>
+
+            <!-- Filtros adicionales: Grupo Muscular y Ejercicio -->
+            <div class="grid grid-cols-2 gap-2">
+                <div class="relative">
+                    <select id="historyFilterMuscle" onchange="onHistoryMuscleFilterChange()" class="w-full appearance-none bg-slate-900 border border-slate-800 text-xs text-slate-200 font-medium rounded-xl pl-3 pr-7 py-2 focus:outline-none focus:border-emerald-500">
+                        <option value="all">Todos los grupos</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+                <div class="relative">
+                    <select id="historyFilterExercise" onchange="renderHistoryView()" class="w-full appearance-none bg-slate-900 border border-slate-800 text-xs text-slate-200 font-medium rounded-xl pl-3 pr-7 py-2 truncate focus:outline-none focus:border-emerald-500">
+                        <option value="all">Todos los ejercicios</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+            </div>
+
+            <!-- Badge de rango de fechas activo -->
+            <div id="activeDateFilterBanner" class="hidden flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-3 py-2 text-xs">
+                <span class="text-emerald-300 font-medium flex items-center gap-1.5">
+                    <i data-lucide="calendar-range" class="w-3.5 h-3.5"></i>
+                    <span id="activeDateFilterText">Filtro activo</span>
+                </span>
+                <button onclick="clearDateFilter()" class="text-emerald-400 hover:text-emerald-300 font-bold text-[11px] underline">Quitar</button>
+            </div>
+
+            <div id="historyList" class="space-y-3">
+                <!-- Lista de historial por JS -->
+            </div>
+        </section>
+
+        <!-- ==================== MODAL: FILTRO DE FECHAS EN HISTORIAL ==================== -->
+        <div id="dateFilterModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm">
+            <div class="w-full max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl animate-slide-up flex flex-col">
+                <div class="px-5 pt-4 pb-3 border-b border-slate-800 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-white">Filtrar por Fecha</h3>
+                        <p class="text-xs text-slate-400">Consulta un día puntual o un rango</p>
+                    </div>
+                    <button onclick="closeDateFilterModal()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div class="p-4 space-y-4">
+                    <div class="grid grid-cols-2 gap-2" id="quickDateButtons">
+                        <button type="button" data-quick="today" onclick="applyQuickDateFilter('today')" class="quick-date-btn py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition">Hoy</button>
+                        <button type="button" data-quick="yesterday" onclick="applyQuickDateFilter('yesterday')" class="quick-date-btn py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition">Ayer</button>
+                        <button type="button" data-quick="7days" onclick="applyQuickDateFilter('7days')" class="quick-date-btn py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition">Última semana</button>
+                        <button type="button" data-quick="month" onclick="applyQuickDateFilter('month')" class="quick-date-btn py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition">Último mes</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 pt-1">
+                        <div>
+                            <label class="text-xs font-semibold text-slate-400 block mb-1">Desde</label>
+                            <input type="date" id="filterDateFrom" class="w-full bg-slate-950 border border-slate-800 text-white font-mono text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-slate-400 block mb-1">Hasta</label>
+                            <input type="date" id="filterDateTo" class="w-full bg-slate-950 border border-slate-800 text-white font-mono text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500">
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-slate-800 flex gap-3">
+                    <button onclick="closeDateFilterModal()" class="w-1/3 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-semibold text-sm">Cancelar</button>
+                    <button onclick="applyCustomDateFilter()" class="w-2/3 py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-bold text-sm">Aplicar Filtro</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== VISTA 4: CATÁLOGO / BÚSQUEDA ==================== -->
+        <section id="view-catalog" class="hidden flex-1 px-4 py-4 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+                <button onclick="openCatalogEditor()" class="flex-1 py-2 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20 active:scale-95 transition">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    Nuevo Ejercicio
+                </button>
+                <button onclick="confirmResetCatalog()" class="py-2 px-3 rounded-xl bg-slate-900 border border-slate-700 hover:border-amber-500/50 text-slate-300 hover:text-amber-400 font-semibold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                    Restaurar Originales
+                </button>
+            </div>
+            <div class="relative">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                <input type="text" id="catalogSearchInput" oninput="renderCatalogView()" placeholder="Buscar por nombre, patrón, máquina, agarre..." 
+                    class="w-full bg-slate-900 border border-slate-800 text-sm text-white placeholder-slate-500 rounded-xl pl-9 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/40">
+            </div>
+            <div id="catalogMuscleChips" class="flex flex-wrap items-center gap-1.5 pb-1">
+                <!-- Chips por JS -->
+            </div>
+            <div class="flex items-center justify-between gap-2">
+                <p class="text-[11px] text-slate-400" id="catalogCountLabel">0 ejercicios</p>
+                <div class="flex items-center gap-1.5">
+                    <select id="catalogTierFilter" onchange="renderCatalogView()" class="bg-slate-900 border border-slate-800 text-[11px] text-slate-300 font-semibold rounded-lg px-2 py-1 focus:outline-none">
+                        <option value="ALL">Todos los niveles</option>
+                        <option value="S">Tier S (Top)</option>
+                        <option value="A">Tier A (Excelente)</option>
+                        <option value="B">Tier B (Bueno)</option>
+                        <option value="C">Tier C (Regular)</option>
+                        <option value="D">Tier D (Evitar)</option>
+                    </select>
+                    <select id="catalogSortSelect" onchange="renderCatalogView()" class="bg-slate-900 border border-slate-800 text-[11px] text-slate-300 font-semibold rounded-lg px-2 py-1 focus:outline-none">
+                        <option value="tier">Orden: Eficacia</option>
+                        <option value="name">Orden: A-Z</option>
+                    </select>
+                </div>
+            </div>
+            <div id="catalogList" class="space-y-2.5">
+                <!-- Lista catálogo por JS -->
+            </div>
+        </section>
+
+        <!-- ==================== VISTA 5: ESTADÍSTICAS Y GENERADOR INTELIGENTE ==================== -->
+        <section id="view-stats" class="hidden flex-1 px-4 py-4 space-y-5">
+            <!-- Header de Sección -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-white">Stats & Evolución</h2>
+                    <p class="text-xs text-slate-400">Recuperación muscular, progreso y rutina inteligente</p>
+                </div>
+                <span class="text-[10px] font-mono font-bold uppercase px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                    Analítica
+                </span>
+            </div>
+
+            <!-- 1. MAPA DE CALOR MUSCULAR (RECUPERACIÓN VS. FATIGA) -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3">
+                <div class="flex items-start justify-between gap-2">
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                            <i data-lucide="flame" class="w-4 h-4 text-rose-400"></i>
+                            Mapa de Calor Muscular
+                        </h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Toca un grupo para seleccionarlo en el generador</p>
+                    </div>
+                </div>
+
+                <!-- Leyenda Térmica -->
+                <div class="flex items-center justify-between text-[10px] font-semibold bg-slate-950/80 border border-slate-800/80 rounded-xl px-2.5 py-1.5">
+                    <span class="flex items-center gap-1 text-rose-400"><span class="w-2 h-2 rounded-full bg-rose-500"></span>0-1d Fatiga</span>
+                    <span class="flex items-center gap-1 text-amber-400"><span class="w-2 h-2 rounded-full bg-amber-500"></span>2-3d Recuperando</span>
+                    <span class="flex items-center gap-1 text-cyan-400"><span class="w-2 h-2 rounded-full bg-cyan-400"></span>4d+ Listo</span>
+                </div>
+
+                <!-- Grilla de Grupos Musculares -->
+                <div id="muscleHeatmapGrid" class="grid grid-cols-2 gap-2">
+                    <!-- Tarjetas térmicas por JS -->
+                </div>
+            </div>
+
+            <!-- 2. GENERADOR INTELIGENTE DE RUTINA DEL DÍA -->
+            <div class="bg-gradient-to-b from-slate-900 to-slate-900/80 border border-emerald-500/30 rounded-2xl p-4 space-y-3.5 shadow-lg shadow-emerald-950/20">
+                <div class="flex items-start justify-between gap-2">
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                            <i data-lucide="sparkles" class="w-4 h-4 text-emerald-400"></i>
+                            Armar Rutina Sugerida Hoy
+                        </h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Prioriza grupos descansados y ejercicios Tier S / A</p>
+                    </div>
+                    <button type="button" onclick="autoSelectColdMuscles()" class="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2 py-1 rounded-lg hover:bg-cyan-500/20 transition shrink-0">
+                        Auto-elegir fríos
+                    </button>
+                </div>
+
+                <!-- Selección rápida de músculos objetivo -->
+                <div>
+                    <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">Grupos a entrenar hoy:</span>
+                    <div id="smartRoutineMuscleChips" class="flex flex-wrap gap-1.5">
+                        <!-- Chips por JS -->
+                    </div>
+                </div>
+
+                <!-- Cantidad de ejercicios / Tiempo disponible -->
+                <div class="flex items-center justify-between gap-2 bg-slate-950/70 border border-slate-800 rounded-xl px-3 py-2">
+                    <span class="text-xs font-semibold text-slate-300">Cantidad de ejercicios:</span>
+                    <div class="flex items-center gap-1">
+                        <button type="button" onclick="setSmartCount(4)" id="smartCnt-4" class="smart-cnt-btn px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition">4</button>
+                        <button type="button" onclick="setSmartCount(6)" id="smartCnt-6" class="smart-cnt-btn px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition">6</button>
+                        <button type="button" onclick="setSmartCount(8)" id="smartCnt-8" class="smart-cnt-btn px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition">8</button>
+                    </div>
+                </div>
+
+                <button type="button" onclick="generateSmartRoutine()" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 active:scale-[0.99] transition">
+                    <i data-lucide="wand-2" class="w-4 h-4"></i>
+                    Generar Propuesta de Sesión
+                </button>
+
+                <!-- Resultado de la propuesta -->
+                <div id="smartRoutineResult" class="hidden space-y-2.5 pt-2 border-t border-slate-800/80">
+                    <div id="smartRoutineExercisesList" class="space-y-1.5"></div>
+                    <div class="flex gap-2 pt-1">
+                        <button type="button" onclick="applySmartRoutineToTrain(false)" class="flex-1 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                            Cargar en Entrenar
+                        </button>
+                        <button type="button" onclick="applySmartRoutineToTrain(true)" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs flex items-center justify-center gap-1 transition" title="Guardar como rutina fija y entrenar">
+                            <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                            Guardar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. GRÁFICO DE EVOLUCIÓN POR EJERCICIO -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3.5">
+                <div>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                        <i data-lucide="trending-up" class="w-4 h-4 text-emerald-400"></i>
+                        Curva de Evolución
+                    </h3>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Progreso histórico de carga o volumen por sesión</p>
+                </div>
+
+                <!-- Controles del gráfico -->
+                <div class="space-y-2">
+                    <div class="relative">
+                        <select id="statsExerciseSelect" onchange="renderProgressChart()" class="w-full appearance-none bg-slate-950 border border-slate-800 text-xs text-white font-semibold rounded-xl pl-3 pr-8 py-2.5 truncate focus:outline-none focus:border-emerald-500">
+                            <!-- Opciones por JS -->
+                        </select>
+                        <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="statsGymScope" onchange="renderProgressChart()" class="bg-slate-950 border border-slate-800 text-xs text-slate-300 rounded-xl px-2.5 py-2 focus:outline-none">
+                            <option value="current">Solo sede actual</option>
+                            <option value="all">Todas las sedes</option>
+                        </select>
+                        <select id="statsMetricSelect" onchange="renderProgressChart()" class="bg-slate-950 border border-slate-800 text-xs text-slate-300 rounded-xl px-2.5 py-2 focus:outline-none">
+                            <option value="maxWeight">Peso Máximo (Kg)</option>
+                            <option value="volume">Volumen Total (Kg×Reps)</option>
+                            <option value="totalReps">Repeticiones Totales</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- KPIs Rápidos -->
+                <div id="statsKpiRow" class="grid grid-cols-3 gap-2">
+                    <!-- KPIs por JS -->
+                </div>
+
+                <!-- Contenedor del Gráfico SVG -->
+                <div id="progressChartContainer" class="bg-slate-950 border border-slate-800/90 rounded-2xl p-3">
+                    <!-- SVG generado por JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== NAVEGACIÓN INFERIOR ==================== -->
+        <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-slate-950/95 backdrop-blur-md border-t border-slate-800/90 px-1.5 py-1.5 flex items-center justify-around z-40">
+            <button onclick="switchTab('train')" id="tab-train" class="nav-btn flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-xl text-emerald-400 transition">
+                <i data-lucide="play-circle" class="w-5 h-5"></i>
+                <span class="text-[10px] font-semibold">Entrenar</span>
+            </button>
+            <button onclick="switchTab('routines')" id="tab-routines" class="nav-btn flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-xl text-slate-400 hover:text-slate-200 transition">
+                <i data-lucide="list-checks" class="w-5 h-5"></i>
+                <span class="text-[10px] font-semibold">Rutinas</span>
+            </button>
+            <button onclick="switchTab('catalog')" id="tab-catalog" class="nav-btn flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-xl text-slate-400 hover:text-slate-200 transition">
+                <i data-lucide="search" class="w-5 h-5"></i>
+                <span class="text-[10px] font-semibold">Catálogo</span>
+            </button>
+            <button onclick="switchTab('stats')" id="tab-stats" class="nav-btn flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-xl text-slate-400 hover:text-slate-200 transition">
+                <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                <span class="text-[10px] font-semibold">Stats</span>
+            </button>
+            <button onclick="switchTab('history')" id="tab-history" class="nav-btn flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-xl text-slate-400 hover:text-slate-200 transition">
+                <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+                <span class="text-[10px] font-semibold">Historial</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- ==================== MODAL 1: CARGA RÁPIDA DE SERIES ==================== -->
+    <div id="workoutModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm">
+        <div class="w-full max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl animate-slide-up max-h-[92vh] flex flex-col">
+            <div class="w-12 h-1.5 bg-slate-700 rounded-full mx-auto mt-3 mb-1 sm:hidden"></div>
+            <div class="px-5 pt-3 pb-3 border-b border-slate-800/80 flex items-start justify-between gap-3">
+                <div>
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <span id="modalMuscleBadge" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">ESPALDA</span>
+                        <span id="modalGymBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-800 text-slate-300">Sede</span>
+                    </div>
+                    <h2 id="modalTitle" class="text-xl font-bold text-white leading-tight">Remo Alto</h2>
+                    <p id="modalMeta" class="text-xs text-slate-400 mt-0.5">Máquina • Agarre Neutro</p>
+                </div>
+                <button onclick="closeWorkoutModal()" class="p-2 rounded-xl bg-slate-800/80 text-slate-400 hover:text-white active:scale-95 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-5 overflow-y-auto space-y-4 flex-1">
+                <!-- Selector de Fecha Retroactiva -->
+                <div class="flex items-center justify-between bg-slate-950/70 border border-slate-800 rounded-xl px-3.5 py-2.5">
+                    <label for="workoutDateInput" class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                        <i data-lucide="calendar" class="w-4 h-4 text-emerald-400"></i>
+                        Fecha del entrenamiento
+                    </label>
+                    <input type="date" id="workoutDateInput" class="bg-slate-900 border border-slate-700 text-white font-mono text-xs rounded-lg px-2.5 py-1 focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <!-- Referencia Último Registro en este Gimnasio -->
+                <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3.5">
+                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Última vez en esta sede</span>
+                        <button onclick="repeatLastSession()" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 active:scale-95 transition">
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                            Repetir última
+                        </button>
+                    </div>
+                    <p id="modalLastRecord" class="font-mono text-sm font-semibold text-slate-200 break-words">Sin registros previos en esta sede</p>
+                    <p id="modalLastNote" class="hidden text-xs text-amber-300/90 mt-1.5 pt-1.5 border-t border-slate-800/80 flex items-start gap-1.5">
+                        <i data-lucide="sticky-note" class="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-400"></i>
+                        <span id="modalLastNoteText"></span>
+                    </p>
+                </div>
+
+                <!-- Series Actuales -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Series</span>
+                        <span id="seriesCountBadge" class="text-xs font-mono text-slate-400">0 series</span>
+                    </div>
+                    <div id="setsContainer" class="space-y-2.5"></div>
+                    <button onclick="addSetRow()" class="mt-3 w-full py-2.5 rounded-xl border border-dashed border-slate-700 hover:border-emerald-500/50 hover:bg-emerald-500/5 text-slate-300 hover:text-emerald-400 text-sm font-semibold flex items-center justify-center gap-1.5 active:scale-[0.99] transition">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Agregar Serie
+                    </button>
+                </div>
+
+                <!-- Vista Previa -->
+                <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
+                    <span class="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Vista previa</span>
+                    <p id="livePreviewText" class="font-mono text-sm font-bold text-emerald-400">Sin series</p>
+                </div>
+
+                <!-- Nota opcional del ejercicio -->
+                <div>
+                    <label for="workoutNoteInput" class="text-xs font-semibold text-slate-400 flex items-center gap-1.5 mb-1.5">
+                        <i data-lucide="sticky-note" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        Nota <span class="text-slate-500 font-normal">(opcional)</span>
+                    </label>
+                    <input type="text" id="workoutNoteInput" placeholder="Ej: Banco nivel 3, programa 2 cinta, 150 kcal..." class="w-full bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-500">
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-800 flex gap-3">
+                <button onclick="closeWorkoutModal()" class="w-1/3 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-semibold text-sm">Cancelar</button>
+                <button onclick="saveCurrentWorkout()" class="w-2/3 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm">Guardar Series</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL 2: REEMPLAZO / ALTERNATIVO ==================== -->
+    <div id="swapModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm">
+        <div class="w-full max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl animate-slide-up max-h-[85vh] flex flex-col">
+            <div class="px-5 pt-4 pb-3 border-b border-slate-800 flex items-center justify-between">
+                <div class="min-w-0 pr-2">
+                    <h3 id="swapModalTitle" class="text-base font-bold text-white truncate">Alternativo</h3>
+                    <p id="swapModalSubtitle" class="text-xs text-slate-400">Selecciona un ejercicio</p>
+                </div>
+                <button onclick="closeSwapModal()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white shrink-0"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="p-4 pb-2 space-y-2.5 border-b border-slate-800/70">
+                <input type="text" id="swapSearchInput" list="swapSuggestionsList" oninput="renderSwapList()" placeholder="Filtrar alternativo..." class="w-full bg-slate-950 border border-slate-800 text-xs text-white rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-500">
+                <datalist id="swapSuggestionsList"></datalist>
+                <div id="swapFilterControls" class="flex flex-wrap gap-1.5">
+                    <button type="button" id="swapBtnMuscle" onclick="toggleSwapFilter('muscle')">Mismo Grupo</button>
+                    <button type="button" id="swapBtnPattern" onclick="toggleSwapFilter('pattern')">Mismo Patrón</button>
+                </div>
+            </div>
+            <div id="swapList" class="p-4 overflow-y-auto space-y-2 flex-1"></div>
+        </div>
+    </div>
+    <!-- ==================== MODAL 5: EDITAR SESIÓN DE HISTORIAL ==================== -->
+    <div id="editHistoryModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm">
+        <div class="w-full max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl animate-slide-up max-h-[92vh] flex flex-col">
+            <div class="px-5 pt-4 pb-3 border-b border-slate-800 flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-white">Editar Registro</h3>
+                    <p class="text-xs text-slate-400">Modifica fecha, sede, ejercicio o series</p>
+                </div>
+                <button onclick="closeEditHistoryModal()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="p-4 overflow-y-auto space-y-3.5 flex-1">
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-400 block mb-1">Fecha</label>
+                        <input type="date" id="editHistDate" class="w-full bg-slate-950 border border-slate-800 text-white font-mono text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-400 block mb-1">Sede / Gimnasio</label>
+                        <select id="editHistGym" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-2.5 py-2 focus:outline-none focus:border-emerald-500"></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[11px] font-semibold text-slate-400 block mb-1">Ejercicio</label>
+                    <select id="editHistExercise" onchange="renderEditHistSets()" class="w-full bg-slate-950 border border-slate-800 text-white text-xs font-semibold rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500"></select>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Series</span>
+                        <button onclick="addEditHistSet()" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Agregar Serie
+                        </button>
+                    </div>
+                    <div id="editHistSetsContainer" class="space-y-2"></div>
+                </div>
+                <div>
+                    <label for="editHistNote" class="text-[11px] font-semibold text-slate-400 block mb-1">Nota <span class="text-slate-500 font-normal">(opcional)</span></label>
+                    <input type="text" id="editHistNote" placeholder="Ej: Banco nivel 3, programa 2..." class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-500">
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-800 flex gap-3">
+                <button onclick="closeEditHistoryModal()" class="w-1/3 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-semibold text-sm">Cancelar</button>
+                <button onclick="saveEditedHistory()" class="w-2/3 py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-bold text-sm">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL 6: CREAR / EDITAR EJERCICIO EN CATÁLOGO ==================== -->
+    <div id="catalogEditorModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm">
+        <div class="w-full max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl animate-slide-up max-h-[90vh] flex flex-col">
+            <div class="px-5 pt-4 pb-3 border-b border-slate-800 flex items-center justify-between">
+                <div>
+                    <h3 id="catalogEditorTitle" class="text-base font-bold text-white">Nuevo Ejercicio</h3>
+                    <p class="text-xs text-slate-400">Personaliza los datos del ejercicio</p>
+                </div>
+                <button onclick="closeCatalogEditor()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="p-4 overflow-y-auto space-y-3 flex-1">
+                <div>
+                    <label class="text-[11px] font-semibold text-slate-400 block mb-1">Nombre del Ejercicio *</label>
+                    <input type="text" id="catNewName" placeholder="Ej: Press Declinado con Mancuernas" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-400 block mb-1">Grupo Muscular *</label>
+                        <select id="catNewMuscle" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-2.5 py-2.5 focus:outline-none focus:border-emerald-500">
+                            <option value="Espalda">Espalda</option>
+                            <option value="Pecho">Pecho</option>
+                            <option value="Piernas">Piernas</option>
+                            <option value="Hombros">Hombros</option>
+                            <option value="Bíceps">Bíceps</option>
+                            <option value="Tríceps">Tríceps</option>
+                            <option value="Abdominales">Abdominales</option>
+                            <option value="Cardio">Cardio</option>
+                            <option value="Multiarticular">Multiarticular</option>
+                            <option value="Antebrazos">Antebrazos</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-400 block mb-1">Equipo *</label>
+                        <input type="text" id="catNewEquipment" placeholder="Ej: Máquina, Polea, Peso Corporal" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-400 block mb-1">Calificación / Eficacia</label>
+                        <select id="catNewTier" class="w-full bg-slate-950 border border-slate-800 text-white text-xs font-semibold rounded-xl px-2.5 py-2.5 focus:outline-none focus:border-emerald-500">
+                            <option value="S">Tier S — Top / Óptimo</option>
+                            <option value="A">Tier A — Excelente</option>
+                            <option value="B">Tier B — Bueno</option>
+                            <option value="C">Tier C — Regular</option>
+                            <option value="D">Tier D — Evitar (Riesgo)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-400 block mb-1">Agarre <span class="text-slate-500 font-normal">(opcional)</span></label>
+                        <input type="text" id="catNewGrip" placeholder="Ej: Neutro, Prono, Supino" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[11px] font-semibold text-slate-400 block mb-1">Patrón / Subgrupo <span class="text-slate-500 font-normal">(opcional)</span></label>
+                    <input type="text" id="catNewPattern" list="patternSuggestionsList" placeholder="Ej: Tracción Horizontal / Remo" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500">
+                    <datalist id="patternSuggestionsList"></datalist>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-800 flex gap-3">
+                <button onclick="closeCatalogEditor()" class="w-1/3 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-semibold text-sm">Cancelar</button>
+                <button onclick="saveCatalogExercise()" class="w-2/3 py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-bold text-sm">Guardar Ejercicio</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL 7: CONFIRMACIÓN PERSONALIZADA ==================== -->
+    <div id="confirmModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl">
+            <div class="flex items-start gap-3">
+                <div class="p-2 rounded-xl bg-amber-500/15 text-amber-400 shrink-0">
+                    <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 id="confirmTitle" class="text-base font-bold text-white">¿Confirmar acción?</h3>
+                    <p id="confirmMessage" class="text-xs text-slate-400 mt-1">Esta acción no se puede deshacer.</p>
+                </div>
+            </div>
+            <div class="flex gap-2.5 justify-end">
+                <button onclick="closeConfirmModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold">Cancelar</button>
+                <button id="confirmActionBtn" class="px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-400 text-white text-xs font-bold">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de Notificación -->
+    <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 translate-y-4">
+        <div class="bg-emerald-500 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-full shadow-xl flex items-center gap-2">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span id="toastMessage">Guardado</span>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. CATÁLOGO NORMALIZADO Y CALIFICADO (CRITERIO BIOMECÁNICO ATHLEAN-X)
+        // ==========================================
+        const DEFAULT_CATALOG = [
+            // ESPALDA & TRAPECIOS
+            { id: "esp_01", nombre: "Dominadas con Peso", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Peso Corporal + Lastre", agarre: "Prono", variante: "Lastrado", tipo_registro: "peso_reps", tier: "S" },
+            { id: "esp_02", nombre: "Remo con Barra", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Barra", agarre: "Prono", variante: "Inclinado", tipo_registro: "peso_reps", tier: "S" },
+            { id: "esp_03", nombre: "Remo Apoyado en Pecho", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Máquina / Banco", agarre: "Neutro", variante: "Con Apoyo", tipo_registro: "peso_reps", tier: "S" },
+            { id: "esp_04", nombre: "Dominada Agarre Prono", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Peso Corporal", agarre: "Prono", variante: "Ancho", tipo_registro: "peso_reps", tier: "S" },
+            { id: "esp_05", nombre: "Dominada Agarre Supino", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Peso Corporal", agarre: "Supino", variante: "Cerrado", tipo_registro: "peso_reps", tier: "A" },
+            { id: "esp_06", nombre: "Dominada Agarre Neutro", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Peso Corporal", agarre: "Neutro", variante: "Estrecho", tipo_registro: "peso_reps", tier: "A" },
+            { id: "esp_07", nombre: "Remo Meadows", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Barra Landmine", agarre: "Prono", variante: "Unilateral", tipo_registro: "peso_reps", tier: "A" },
+            { id: "esp_08", nombre: "Remo en Polea Alta Unilateral", grupo_muscular: "Espalda", patron: "Tracción Vertical / Remo", equipo: "Polea", agarre: "Neutro", variante: "Unilateral", tipo_registro: "peso_reps", tier: "A" },
+            { id: "esp_09", nombre: "Jalón al Pecho", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Polea", agarre: "Prono", variante: "Barra Larga", tipo_registro: "peso_reps", tier: "A" },
+            { id: "esp_10", nombre: "Dorsalera (Pull Down)", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Máquina", agarre: "Prono", variante: "Con Discos", tipo_registro: "peso_reps", tier: "A" },
+            { id: "esp_11", nombre: "Remo Alto", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Máquina Dorsalera", agarre: "Neutro", variante: "Estrecho", tipo_registro: "peso_reps", tier: "A" },
+            { id: "esp_12", nombre: "Remo en Polea Baja", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Polea", agarre: "Neutro", variante: "Triángulo", tipo_registro: "peso_reps", tier: "B" },
+            { id: "esp_13", nombre: "Remo Trípode con Mancuerna", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Mancuernas", agarre: "Neutro", variante: "Unilateral", tipo_registro: "peso_reps", tier: "B" },
+            { id: "esp_14", nombre: "Pullover en Polea Alta", grupo_muscular: "Espalda", patron: "Extensión Hombro / Pullover", equipo: "Polea", agarre: "Prono", variante: "Barra Recta", tipo_registro: "peso_reps", tier: "B" },
+            { id: "esp_15", nombre: "Remo Hammer", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Máquina Hammer", agarre: "Neutro", variante: "Bilateral", tipo_registro: "peso_reps", tier: "B" },
+            { id: "esp_16", nombre: "Remo Pendlay", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Barra", agarre: "Prono", variante: "Explosivo", tipo_registro: "peso_reps", tier: "C" },
+            { id: "esp_17", nombre: "Lumbar en Banqueta", grupo_muscular: "Espalda", patron: "Extensión Lumbar", equipo: "Peso Corporal", agarre: null, variante: "Hiperextensión", tipo_registro: "peso_reps", tier: "B" },
+            { id: "esp_18", nombre: "Jalón Tras Nuca", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Polea", agarre: "Prono", variante: "Tras Nuca", tipo_registro: "peso_reps", tier: "D" },
+
+            // PECHO
+            { id: "pec_01", nombre: "Press Plano con Barra", grupo_muscular: "Pecho", patron: "Empuje Horizontal / Press", equipo: "Barra", agarre: "Prono", variante: "Banco Plano", tipo_registro: "peso_reps", tier: "S" },
+            { id: "pec_02", nombre: "Press Plano con Mancuernas", grupo_muscular: "Pecho", patron: "Empuje Horizontal / Press", equipo: "Mancuernas", agarre: "Prono", variante: "Banco Plano", tipo_registro: "peso_reps", tier: "S" },
+            { id: "pec_03", nombre: "Press Inclinado con Mancuernas (30°)", grupo_muscular: "Pecho", patron: "Empuje Inclinado", equipo: "Mancuernas", agarre: "Prono", variante: "30°", tipo_registro: "peso_reps", tier: "S" },
+            { id: "pec_04", nombre: "Press Inclinado con Barra", grupo_muscular: "Pecho", patron: "Empuje Inclinado", equipo: "Barra", agarre: "Prono", variante: "30°", tipo_registro: "peso_reps", tier: "A" },
+            { id: "pec_05", nombre: "Cruce de Poleas (Down-Up)", grupo_muscular: "Pecho", patron: "Aducción / Aperturas", equipo: "Polea", agarre: "Supino", variante: "Inferior a Superior", tipo_registro: "peso_reps", tier: "A" },
+            { id: "pec_06", nombre: "Cruce de Poleas (Up-Down)", grupo_muscular: "Pecho", patron: "Aducción / Aperturas", equipo: "Polea", agarre: "Neutro", variante: "Superior a Inferior", tipo_registro: "peso_reps", tier: "A" },
+            { id: "pec_07", nombre: "Press en Banco Hammer", grupo_muscular: "Pecho", patron: "Empuje Horizontal / Press", equipo: "Máquina Hammer", agarre: "Neutro", variante: "Convergente", tipo_registro: "peso_reps", tier: "A" },
+            { id: "pec_08", nombre: "Fondos en Paralelas (Inclinado Pecho)", grupo_muscular: "Pecho", patron: "Empuje Declinado / Fondos", equipo: "Peso Corporal", agarre: "Neutro", variante: "Torso Inclinado", tipo_registro: "peso_reps", tier: "A" },
+            { id: "pec_09", nombre: "Flexiones en Déficit / Pliométricas", grupo_muscular: "Pecho", patron: "Empuje Horizontal / Press", equipo: "Peso Corporal", agarre: "Prono", variante: "Déficit", tipo_registro: "peso_reps", tier: "B" },
+            { id: "pec_10", nombre: "Press Declinado con Barra", grupo_muscular: "Pecho", patron: "Empuje Declinado", equipo: "Barra", agarre: "Prono", variante: "Declinado", tipo_registro: "peso_reps", tier: "B" },
+            { id: "pec_11", nombre: "Aperturas en Máquina (Peck Deck)", grupo_muscular: "Pecho", patron: "Aducción / Aperturas", equipo: "Máquina", agarre: "Neutro", variante: "Sentado", tipo_registro: "peso_reps", tier: "B" },
+            { id: "pec_12", nombre: "Press de Pecho en Máquina", grupo_muscular: "Pecho", patron: "Empuje Horizontal / Press", equipo: "Máquina", agarre: "Prono", variante: "Sentado", tipo_registro: "peso_reps", tier: "B" },
+            { id: "pec_13", nombre: "Aperturas Planas con Mancuernas", grupo_muscular: "Pecho", patron: "Aducción / Aperturas", equipo: "Mancuernas", agarre: "Neutro", variante: "Banco Plano", tipo_registro: "peso_reps", tier: "D" },
+
+            // PIERNAS (CUÁDRICEPS, GLÚTEOS, ISQUIOS Y GEMELOS)
+            { id: "pie_01", nombre: "Sentadilla Frontal con Barra", grupo_muscular: "Piernas", patron: "Cuádriceps / Rodilla", equipo: "Barra", agarre: "Prono", variante: "Frontal", tipo_registro: "peso_reps", tier: "S" },
+            { id: "pie_02", nombre: "Sentadillas con Barra (Barra Alta)", grupo_muscular: "Piernas", patron: "Cuádriceps / Rodilla", equipo: "Barra", agarre: "Prono", variante: "Libre", tipo_registro: "peso_reps", tier: "S" },
+            { id: "pie_03", nombre: "Sentadilla Hack", grupo_muscular: "Piernas", patron: "Cuádriceps / Rodilla", equipo: "Máquina", agarre: null, variante: "Inclinada", tipo_registro: "peso_reps", tier: "S" },
+            { id: "pie_04", nombre: "Hip Thrust con Barra", grupo_muscular: "Piernas", patron: "Glúteos / Bisagra", equipo: "Barra", agarre: null, variante: "Banco", tipo_registro: "peso_reps", tier: "S" },
+            { id: "pie_05", nombre: "Sentadilla Búlgara", grupo_muscular: "Piernas", patron: "Cuádriceps / Unilateral", equipo: "Mancuernas", agarre: "Neutro", variante: "Unilateral", tipo_registro: "peso_reps", tier: "A" },
+            { id: "pie_06", nombre: "Zancada en Reversa", grupo_muscular: "Piernas", patron: "Cuádriceps / Unilateral", equipo: "Mancuernas", agarre: "Neutro", variante: "Hacia Atrás", tipo_registro: "peso_reps", tier: "A" },
+            { id: "pie_07", nombre: "Curl Isquiotibial Sentado", grupo_muscular: "Piernas", patron: "Isquios / Flexión Rodilla", equipo: "Máquina", agarre: null, variante: "Seated Leg Curl", tipo_registro: "peso_reps", tier: "S" },
+            { id: "pie_08", nombre: "Curl Nórdico / Glute Ham Raise", grupo_muscular: "Piernas", patron: "Isquios / Flexión Rodilla", equipo: "Peso Corporal", agarre: null, variante: "Excéntrico", tipo_registro: "peso_reps", tier: "S" },
+            { id: "pie_09", nombre: "Prensa 45°", grupo_muscular: "Piernas", patron: "Cuádriceps / Rodilla", equipo: "Máquina", agarre: null, variante: "Rango Completo", tipo_registro: "peso_reps", tier: "B" },
+            { id: "pie_10", nombre: "Curl Isquiotibial Acostado", grupo_muscular: "Piernas", patron: "Isquios / Flexión Rodilla", equipo: "Máquina", agarre: null, variante: "Lying Leg Curl", tipo_registro: "peso_reps", tier: "B" },
+            { id: "pie_11", nombre: "Glúteos en Polea (Patada)", grupo_muscular: "Piernas", patron: "Glúteos / Extensión Cadera", equipo: "Polea", agarre: null, variante: "Tobillera", tipo_registro: "peso_reps", tier: "B" },
+            { id: "pie_12", nombre: "Sillón de Cuádriceps", grupo_muscular: "Piernas", patron: "Cuádriceps / Aislamiento", equipo: "Máquina", agarre: null, variante: "Extensión", tipo_registro: "peso_reps", tier: "C" },
+            { id: "pie_13", nombre: "Prensa Horizontal", grupo_muscular: "Piernas", patron: "Cuádriceps / Rodilla", equipo: "Máquina", agarre: null, variante: "Sentado", tipo_registro: "peso_reps", tier: "B" },
+            { id: "pie_14", nombre: "Abductores en Máquina", grupo_muscular: "Piernas", patron: "Abducción / Glúteo Medio", equipo: "Máquina", agarre: null, variante: "Sentado", tipo_registro: "peso_reps", tier: "B" },
+            { id: "pie_15", nombre: "Aductores en Máquina", grupo_muscular: "Piernas", patron: "Aducción", equipo: "Máquina", agarre: null, variante: "Sentado", tipo_registro: "peso_reps", tier: "B" },
+            { id: "pie_16", nombre: "Gemelos de Pie / en Prensa", grupo_muscular: "Piernas", patron: "Gemelos", equipo: "Máquina", agarre: null, variante: "Rodilla Extendida", tipo_registro: "peso_reps", tier: "A" },
+            { id: "pie_17", nombre: "Sóleo Sentado", grupo_muscular: "Piernas", patron: "Gemelos", equipo: "Máquina", agarre: null, variante: "Rodilla Flexionada", tipo_registro: "peso_reps", tier: "B" },
+
+            // HOMBROS & TRAPECIOS
+            { id: "hom_01", nombre: "Press Militar con Mancuernas", grupo_muscular: "Hombros", patron: "Empuje Vertical / Press", equipo: "Mancuernas", agarre: "Prono", variante: "De pie / Sentado", tipo_registro: "peso_reps", tier: "S" },
+            { id: "hom_02", nombre: "Vuelos Laterales en Polea", grupo_muscular: "Hombros", patron: "Deltoides Medio / Vuelos", equipo: "Polea", agarre: "Neutro", variante: "Unilateral", tipo_registro: "peso_reps", tier: "S" },
+            { id: "hom_03", nombre: "Face Pull (Jalón a la Cara)", grupo_muscular: "Hombros", patron: "Deltoides Posterior", equipo: "Polea", agarre: "Neutro", variante: "Soga", tipo_registro: "peso_reps", tier: "S" },
+            { id: "hom_04", nombre: "Vuelos Posteriores Supinados (Reverse Fly)", grupo_muscular: "Hombros", patron: "Deltoides Posterior", equipo: "Mancuernas", agarre: "Supino", variante: "Inclinado", tipo_registro: "peso_reps", tier: "S" },
+            { id: "hom_05", nombre: "Vuelos Laterales con Mancuernas", grupo_muscular: "Hombros", patron: "Deltoides Medio / Vuelos", equipo: "Mancuernas", agarre: "Neutro", variante: "Plano Escapular", tipo_registro: "peso_reps", tier: "A" },
+            { id: "hom_06", nombre: "Press Arnold", grupo_muscular: "Hombros", patron: "Empuje Vertical / Press", equipo: "Mancuernas", agarre: "Rotación", variante: "Sentado", tipo_registro: "peso_reps", tier: "B" },
+            { id: "hom_07", nombre: "Press Militar en Máquina Smith", grupo_muscular: "Hombros", patron: "Empuje Vertical / Press", equipo: "Máquina Smith", agarre: "Prono", variante: "Sentado", tipo_registro: "peso_reps", tier: "B" },
+            { id: "hom_08", nombre: "Vuelos Laterales en Máquina", grupo_muscular: "Hombros", patron: "Deltoides Medio / Vuelos", equipo: "Máquina", agarre: "Neutro", variante: "Sentado", tipo_registro: "peso_reps", tier: "B" },
+            { id: "hom_09", nombre: "Pájaros / Deltoides Posterior en Máquina", grupo_muscular: "Hombros", patron: "Deltoides Posterior", equipo: "Máquina", agarre: "Neutro", variante: "Peck Deck Invertido", tipo_registro: "peso_reps", tier: "B" },
+            { id: "hom_10", nombre: "Encogimiento de Trapecio en Polea / Barra", grupo_muscular: "Hombros", patron: "Trapecio", equipo: "Polea / Barra", agarre: "Neutro", variante: "Inclinado", tipo_registro: "peso_reps", tier: "A" },
+            { id: "hom_11", nombre: "Paseo del Granjero (Farmer Carry)", grupo_muscular: "Hombros", patron: "Trapecio / Estabilidad", equipo: "Mancuernas", agarre: "Neutro", variante: "Caminata", tipo_registro: "peso_reps", tier: "A" },
+            { id: "hom_12", nombre: "Remo al Mentón / Erguido", grupo_muscular: "Hombros", patron: "Deltoides Medio / Trapecio", equipo: "Barra", agarre: "Prono", variante: "Estrecho", tipo_registro: "peso_reps", tier: "D" },
+            { id: "hom_13", nombre: "Press Militar Tras Nuca", grupo_muscular: "Hombros", patron: "Empuje Vertical / Press", equipo: "Barra", agarre: "Prono", variante: "Tras Nuca", tipo_registro: "peso_reps", tier: "D" },
+
+            // BÍCEPS
+            { id: "bic_01", nombre: "Curl con Barra Estricto", grupo_muscular: "Bíceps", patron: "Curl Supino", equipo: "Barra", agarre: "Supino", variante: "Barra Recta / Z", tipo_registro: "peso_reps", tier: "S" },
+            { id: "bic_02", nombre: "Curl Inclinado con Mancuernas", grupo_muscular: "Bíceps", patron: "Curl Estiramiento", equipo: "Mancuernas", agarre: "Supino", variante: "Banco 45°", tipo_registro: "peso_reps", tier: "S" },
+            { id: "bic_03", nombre: "Curl en Polea Baja", grupo_muscular: "Bíceps", patron: "Curl Supino", equipo: "Polea", agarre: "Supino", variante: "Tensión Constante", tipo_registro: "peso_reps", tier: "S" },
+            { id: "bic_04", nombre: "Curl Alternado con Mancuernas", grupo_muscular: "Bíceps", patron: "Curl Supino", equipo: "Mancuernas", agarre: "Supino", variante: "De pie", tipo_registro: "peso_reps", tier: "A" },
+            { id: "bic_05", nombre: "Curl Martillo", grupo_muscular: "Bíceps", patron: "Curl Neutro / Braquial", equipo: "Mancuernas", agarre: "Neutro", variante: "Alternado", tipo_registro: "peso_reps", tier: "A" },
+            { id: "bic_06", nombre: "Curl en Banco Scott (Predicador)", grupo_muscular: "Bíceps", patron: "Curl Pico / Corto", equipo: "Barra", agarre: "Supino", variante: "Barra W", tipo_registro: "peso_reps", tier: "B" },
+            { id: "bic_07", nombre: "Curl Araña (Spider Curl)", grupo_muscular: "Bíceps", patron: "Curl Pico / Corto", equipo: "Mancuernas", agarre: "Supino", variante: "Banco Inclinado", tipo_registro: "peso_reps", tier: "B" },
+            { id: "bic_08", nombre: "Curl Concentrado", grupo_muscular: "Bíceps", patron: "Curl Pico / Corto", equipo: "Mancuernas", agarre: "Supino", variante: "Sentado", tipo_registro: "peso_reps", tier: "C" },
+
+            // TRÍCEPS
+            { id: "tri_01", nombre: "Extensiones de Tríceps Acostado (Press Francés)", grupo_muscular: "Tríceps", patron: "Extensión Cabeza Larga", equipo: "Barra", agarre: "Prono", variante: "Barra W", tipo_registro: "peso_reps", tier: "S" },
+            { id: "tri_02", nombre: "Press de Banca Agarre Cerrado", grupo_muscular: "Tríceps", patron: "Empuje Pesado", equipo: "Barra", agarre: "Prono", variante: "Banco Plano", tipo_registro: "peso_reps", tier: "S" },
+            { id: "tri_03", nombre: "Fondos en Paralelas (Erguido)", grupo_muscular: "Tríceps", patron: "Empuje / Fondos", equipo: "Peso Corporal", agarre: "Neutro", variante: "Torso Recto", tipo_registro: "peso_reps", tier: "A" },
+            { id: "tri_04", nombre: "Extensión Trasnuca en Polea con Soga", grupo_muscular: "Tríceps", patron: "Extensión Cabeza Larga", equipo: "Polea", agarre: "Neutro", variante: "Soga", tipo_registro: "peso_reps", tier: "A" },
+            { id: "tri_05", nombre: "Extensión Media en Polea (Pushdown)", grupo_muscular: "Tríceps", patron: "Extensión Lateral", equipo: "Polea", agarre: "Prono", variante: "Barra Recta", tipo_registro: "peso_reps", tier: "B" },
+            { id: "tri_06", nombre: "Extensión en Polea con Soga", grupo_muscular: "Tríceps", patron: "Extensión Lateral", equipo: "Polea", agarre: "Neutro", variante: "Soga", tipo_registro: "peso_reps", tier: "B" },
+            { id: "tri_07", nombre: "Patada de Tríceps en Polea / Mancuerna", grupo_muscular: "Tríceps", patron: "Extensión Contracción", equipo: "Polea", agarre: "Neutro", variante: "Unilateral", tipo_registro: "peso_reps", tier: "B" },
+            { id: "tri_08", nombre: "Fondos entre Bancos", grupo_muscular: "Tríceps", patron: "Empuje / Fondos", equipo: "Peso Corporal", agarre: "Prono", variante: "Banca", tipo_registro: "peso_reps", tier: "D" },
+
+            // ABDOMINALES
+            { id: "abs_01", nombre: "Rueda Abdominal (Ab Rollout)", grupo_muscular: "Abdominales", patron: "Core / Anti-extensión", equipo: "Peso Corporal", agarre: "Prono", variante: "De rodillas / Pie", tipo_registro: "peso_reps", tier: "S" },
+            { id: "abs_02", nombre: "Elevación de Piernas Colgado / Sillón del Rey", grupo_muscular: "Abdominales", patron: "Core / Flexión Inferior", equipo: "Peso Corporal", agarre: null, variante: "Enrollamiento Pélvico", tipo_registro: "peso_reps", tier: "S" },
+            { id: "abs_03", nombre: "Plancha RKC (Retroversión Pélvica)", grupo_muscular: "Abdominales", patron: "Core / Isométrico", equipo: "Peso Corporal", agarre: null, variante: "Máxima Tensión", tipo_registro: "peso_reps", tier: "S" },
+            { id: "abs_04", nombre: "Crunch en Polea Alta", grupo_muscular: "Abdominales", patron: "Core / Flexión Superior", equipo: "Polea", agarre: "Neutro", variante: "Arrodillado", tipo_registro: "peso_reps", tier: "A" },
+            { id: "abs_05", nombre: "Press Pallof", grupo_muscular: "Abdominales", patron: "Core / Anti-rotación", equipo: "Polea", agarre: "Neutro", variante: "De pie", tipo_registro: "peso_reps", tier: "A" },
+            { id: "abs_06", nombre: "Abdominales en Colchoneta (Crunch Controlado)", grupo_muscular: "Abdominales", patron: "Core / Flexión", equipo: "Peso Corporal", agarre: null, variante: "Plano", tipo_registro: "peso_reps", tier: "B" },
+
+            // CARDIO
+            { id: "car_01", nombre: "Cinta", grupo_muscular: "Cardio", patron: "Cardio", equipo: "Máquina Cardio", agarre: null, variante: "Trote / Inclinación", tipo_registro: "tiempo_distancia", tier: "A" },
+            { id: "car_02", nombre: "Remo Mecánico", grupo_muscular: "Cardio", patron: "Cardio", equipo: "Máquina Cardio", agarre: "Prono", variante: "Continuo", tipo_registro: "tiempo_distancia", tier: "S" },
+            { id: "car_03", nombre: "Bici Fija / Spinning", grupo_muscular: "Cardio", patron: "Cardio", equipo: "Máquina Cardio", agarre: null, variante: "Moderado", tipo_registro: "tiempo_distancia", tier: "A" },
+            { id: "car_04", nombre: "Elíptico", grupo_muscular: "Cardio", patron: "Cardio", equipo: "Máquina Cardio", agarre: null, variante: "Moderado", tipo_registro: "tiempo_distancia", tier: "B" },
+            { id: "car_05", nombre: "Stepper", grupo_muscular: "Cardio", patron: "Cardio", equipo: "Máquina Cardio", agarre: null, variante: "Continuo", tipo_registro: "tiempo_distancia", tier: "B" },
+
+            // MULTIARTICULAR & ANTEBRAZOS
+            { id: "mul_01", nombre: "Peso Muerto Rumano", grupo_muscular: "Multiarticular", patron: "Bisagra / Cadena Posterior", equipo: "Barra", agarre: "Prono", variante: "Isquios/Glúteos", tipo_registro: "peso_reps", tier: "S" },
+            { id: "mul_02", nombre: "Peso Muerto Convencional", grupo_muscular: "Multiarticular", patron: "Bisagra / Fuerza Total", equipo: "Barra", agarre: "Mixto", variante: "Libre", tipo_registro: "peso_reps", tier: "A" },
+            { id: "mul_03", nombre: "Peso Muerto Sumo", grupo_muscular: "Multiarticular", patron: "Bisagra / Fuerza", equipo: "Barra", agarre: "Mixto", variante: "Sumo", tipo_registro: "peso_reps", tier: "A" },
+            { id: "ant_01", nombre: "Curl de Muñeca con Barra (Flexión)", grupo_muscular: "Antebrazos", patron: "Flexión Muñeca", equipo: "Barra", agarre: "Supino", variante: "Banco", tipo_registro: "peso_reps", tier: "A" },
+            { id: "ant_02", nombre: "Extensión de Muñeca con Barra", grupo_muscular: "Antebrazos", patron: "Extensión Muñeca", equipo: "Barra", agarre: "Prono", variante: "Banco", tipo_registro: "peso_reps", tier: "A" },
+            { id: "ant_03", nombre: "Curl Invertido con Barra", grupo_muscular: "Antebrazos", patron: "Braquiorradial / Prono", equipo: "Barra", agarre: "Prono", variante: "Barra Z", tipo_registro: "peso_reps", tier: "S" },
+            { id: "ant_04", nombre: "Cuelgue en Barra (Dead Hang)", grupo_muscular: "Antebrazos", patron: "Agarre Isométrico", equipo: "Peso Corporal", agarre: "Prono", variante: "Agarre", tipo_registro: "peso_reps", tier: "S" }
+        ];
+
+        let EXERCISES_CATALOG = [];
+        const DEFAULT_GYMS = [
+            { id: "gym_1", nombre: "Gimnasio Principal" },
+            { id: "gym_2", nombre: "Sede Centro" },
+            { id: "gym_3", nombre: "Casa" }
+        ];
+
+        const DEFAULT_ROUTINES = [
+            { id: "rut_1", nombre: "Rutina A: Espalda y Bíceps", ejercicios: ["esp_01", "esp_03", "esp_04", "bic_01", "bic_02", "abs_01"] },
+            { id: "rut_2", nombre: "Rutina B: Pecho y Tríceps", ejercicios: ["pec_01", "pec_02", "pec_03", "tri_01", "tri_02", "tri_03"] },
+            { id: "rut_3", nombre: "Rutina C: Piernas y Hombros", ejercicios: ["pie_01", "pie_02", "pie_03", "pie_05", "hom_01", "hom_02", "car_01"] }
+        ];
+
+        const STORAGE_KEYS = {
+            CATALOG: "gymlog_catalog_v2",
+            GYMS: "gymlog_gyms_v2",
+            ACTIVE_GYM: "gymlog_active_gym_v2",
+            ROUTINES: "gymlog_routines_v2",
+            ACTIVE_ROUTINE: "gymlog_active_routine_v2",
+            LOGS: "gymlog_logs_v2"
+        };
+
+        // ==========================================
+        // 2. ESTADO GLOBAL
+        // ==========================================
+        let gyms = [];
+        let activeGymId = "gym_1";
+        let routines = [];
+        let activeRoutineId = "rut_1";
+        let sessionExercises = []; // Copia temporal de la rutina activa para permitir reemplazos/extras
+        let workoutLogs = []; // Array de { id, date, gymId, exerciseId, sets }
+
+        let currentTab = "train";
+        let catalogMuscleFilter = "Todos";
+        let activeWorkoutExId = null;
+        let currentSets = [];
+        let swapTargetIndex = null;
+        let swapIsExtra = false;
+        let swapFilterMuscle = false;
+        let swapFilterPattern = false;
+        let editingRoutineId = null;
+        let editingRoutineExIds = [];
+        let routineMuscleFilters = [];
+        let editingLogId = null;
+        let editHistSets = [];
+        let editingCatalogExId = null;
+        let historyDateFrom = "";
+        let historyDateTo = "";
+        let historyQuickMode = "";
+        let smartTargetMuscles = [];
+        let smartExerciseCount = 6;
+        let smartGeneratedIds = [];
+
+        // ==========================================
+        // 3. INICIALIZACIÓN Y PERSISTENCIA
+        // ==========================================
+        function initApp() {
+            loadState();
+            renderGymSelect();
+            renderActiveRoutineSelect();
+            syncSessionExercises();
+            renderTrainView();
+            document.addEventListener("click", (e) => {
+                const menu = document.getElementById("historyMoreMenu");
+                if (menu && !menu.classList.contains("hidden") && !e.target.closest("#historyMoreMenu") && !e.target.closest("button[title='Más opciones']")) {
+                    menu.classList.add("hidden");
+                }
+            });
+            lucide.createIcons();
+        }
+
+        function isBodyweightExercise(ex) {
+            if (!ex) return false;
+            const eq = (ex.equipo || "").toLowerCase();
+            const name = (ex.nombre || "").toLowerCase();
+            const variant = (ex.variante || "").toLowerCase();
+            if (eq.includes("lastre") || name.includes("con peso") || variant.includes("lastrado")) {
+                return false;
+            }
+            return eq.includes("peso corporal") || ex.id === "abs_03";
+        }
+
+        function loadState() {
+            try {
+                const savedCatalog = JSON.parse(localStorage.getItem(STORAGE_KEYS.CATALOG));
+                if (savedCatalog && savedCatalog.length > 0) {
+                    const defaultTierMap = Object.fromEntries(DEFAULT_CATALOG.map(d => [d.id, d.tier]));
+                    EXERCISES_CATALOG = savedCatalog.map(ex => ({
+                        ...ex,
+                        equipo: ex.id === "esp_01" && ex.equipo === "Peso Corporal" ? "Peso Corporal + Lastre" : ex.equipo,
+                        tier: ex.tier || defaultTierMap[ex.id] || "A"
+                    }));
+                } else {
+                    EXERCISES_CATALOG = JSON.parse(JSON.stringify(DEFAULT_CATALOG));
+                }
+                gyms = JSON.parse(localStorage.getItem(STORAGE_KEYS.GYMS)) || DEFAULT_GYMS;
+                activeGymId = localStorage.getItem(STORAGE_KEYS.ACTIVE_GYM) || gyms[0].id;
+                routines = JSON.parse(localStorage.getItem(STORAGE_KEYS.ROUTINES)) || DEFAULT_ROUTINES;
+                activeRoutineId = localStorage.getItem(STORAGE_KEYS.ACTIVE_ROUTINE) || (routines[0] ? routines[0].id : null);
+                
+                const savedLogs = localStorage.getItem(STORAGE_KEYS.LOGS);
+                if (savedLogs) {
+                    workoutLogs = JSON.parse(savedLogs);
+                } else {
+                    // Dato de ejemplo inicial para el Gimnasio Principal
+                    workoutLogs = [{
+                        id: "log_init_1",
+                        date: getTodayISO(),
+                        gymId: "gym_1",
+                        exerciseId: "esp_01",
+                        sets: [{p: 60, r: 12}, {p: 60, r: 12}, {p: 60, r: 10}, {p: 60, r: 8}]
+                    }];
+                    localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(workoutLogs));
+                }
+            } catch (e) {
+                console.error("Error cargando estado:", e);
+            }
+        }
+
+        function getTodayISO() {
+            const d = new Date();
+            const offset = d.getTimezoneOffset();
+            const local = new Date(d.getTime() - (offset * 60 * 1000));
+            return local.toISOString().split('T')[0];
+        }
+
+        function getLastRecordForGym(exerciseId, gymId) {
+            const matching = workoutLogs
+                .filter(l => l.exerciseId === exerciseId && l.gymId === gymId)
+                .sort((a, b) => b.date.localeCompare(a.date));
+            return matching.length > 0 ? matching[0] : null;
+        }
+
+        function formatCompactRecord(sets, tipo, ex = null) {
+            if (!sets || sets.length === 0) return "Sin registros en esta sede";
+            if (tipo === "tiempo_distancia") {
+                return sets.map(s => `${s.p}m × ${s.r}km`).join(" | ");
+            }
+            if (ex && isBodyweightExercise(ex)) {
+                return sets.map(s => `${s.r} reps`).join(" - ");
+            }
+            return sets.map(s => `${s.p}*${s.r}`).join(" - ");
+        }
+
+        // ==========================================
+        // 4. NAVEGACIÓN POR PESTAÑAS
+        // ==========================================
+        function switchTab(tab) {
+            currentTab = tab;
+            ["train", "routines", "history", "stats", "catalog"].forEach(t => {
+                document.getElementById(`view-${t}`).classList.toggle("hidden", t !== tab);
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tab) {
+                    btn.classList.add("text-emerald-400");
+                    btn.classList.remove("text-slate-400");
+                } else {
+                    btn.classList.remove("text-emerald-400");
+                    btn.classList.add("text-slate-400");
+                }
+            });
+
+            const subtitles = { train: "Entrenamiento", routines: "Gestor de Rutinas", history: "Historial por Sede", stats: "Estadísticas y Evolución", catalog: "Catálogo Completo" };
+            document.getElementById("headerSubtitle").textContent = subtitles[tab];
+
+            if (tab === "train") renderTrainView();
+            if (tab === "routines") renderRoutinesCrudView();
+            if (tab === "history") renderHistoryView();
+            if (tab === "stats") renderStatsView();
+            if (tab === "catalog") renderCatalogView();
+            lucide.createIcons();
+        }
+
+        // ==========================================
+        // 5. GIMNASIOS / SEDES
+        // ==========================================
+        function renderGymSelect() {
+            const select = document.getElementById("gymSelect");
+            select.innerHTML = gyms.map(g => `<option value="${g.id}">${g.nombre}</option>`).join("");
+            select.value = activeGymId;
+        }
+
+        function changeGym(gymId) {
+            activeGymId = gymId;
+            localStorage.setItem(STORAGE_KEYS.ACTIVE_GYM, activeGymId);
+            if (currentTab === "train") renderTrainView();
+            if (currentTab === "history") renderHistoryView();
+            if (currentTab === "stats") renderStatsView();
+            if (currentTab === "catalog") renderCatalogView();
+            const gymName = gyms.find(g => g.id === gymId)?.nombre || "";
+            showToast(`Sede cambiada a ${gymName}`);
+        }
+
+        function openGymModal() {
+            renderGymManageList();
+            document.getElementById("gymModal").classList.remove("hidden");
+            lucide.createIcons();
+        }
+
+        function closeGymModal() {
+            document.getElementById("gymModal").classList.add("hidden");
+        }
+
+        function renderGymManageList() {
+            const list = document.getElementById("gymManageList");
+            list.innerHTML = gyms.map(g => `
+                <div class="flex items-center justify-between bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5">
+                    <span class="text-sm font-medium text-white">${g.nombre}</span>
+                    ${gyms.length > 1 ? `<button onclick="deleteGym('${g.id}')" class="text-slate-500 hover:text-rose-400 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : `<span class="text-[10px] text-slate-500">Por defecto</span>`}
+                </div>
+            `).join("");
+            lucide.createIcons();
+        }
+
+        function addNewGym() {
+            const input = document.getElementById("newGymInput");
+            const name = input.value.trim();
+            if (!name) return;
+            const newGym = { id: "gym_" + Date.now(), nombre: name };
+            gyms.push(newGym);
+            localStorage.setItem(STORAGE_KEYS.GYMS, JSON.stringify(gyms));
+            input.value = "";
+            activeGymId = newGym.id;
+            localStorage.setItem(STORAGE_KEYS.ACTIVE_GYM, activeGymId);
+            renderGymSelect();
+            renderGymManageList();
+            showToast("Gimnasio agregado");
+        }
+
+        function deleteGym(id) {
+            if (gyms.length <= 1) return;
+            gyms = gyms.filter(g => g.id !== id);
+            if (activeGymId === id) activeGymId = gyms[0].id;
+            localStorage.setItem(STORAGE_KEYS.GYMS, JSON.stringify(gyms));
+            localStorage.setItem(STORAGE_KEYS.ACTIVE_GYM, activeGymId);
+            renderGymSelect();
+            renderGymManageList();
+            if (currentTab === "train") renderTrainView();
+        }
+
+        // ==========================================
+        // 6. VISTA ENTRENAR & REEMPLAZO DE EJERCICIOS
+        // ==========================================
+        function renderActiveRoutineSelect() {
+            const select = document.getElementById("activeRoutineSelect");
+            if (routines.length === 0) {
+                select.innerHTML = `<option value="">Sin rutinas</option>`;
+                return;
+            }
+            select.innerHTML = routines.map(r => `<option value="${r.id}">${r.nombre}</option>`).join("");
+            if (!routines.some(r => r.id === activeRoutineId)) activeRoutineId = routines[0].id;
+            select.value = activeRoutineId;
+        }
+
+        function changeActiveRoutine(rutId) {
+            activeRoutineId = rutId;
+            localStorage.setItem(STORAGE_KEYS.ACTIVE_ROUTINE, activeRoutineId);
+            syncSessionExercises();
+            renderTrainView();
+        }
+
+        function syncSessionExercises() {
+            const rut = routines.find(r => r.id === activeRoutineId);
+            sessionExercises = rut ? [...rut.ejercicios] : [];
+        }
+
+        function renderTrainView() {
+            const container = document.getElementById("trainExerciseList");
+            if (sessionExercises.length === 0) {
+                container.innerHTML = `<p class="text-center text-xs text-slate-400 py-8">Esta rutina no tiene ejercicios. Agrega uno o edita la rutina.</p>`;
+                return;
+            }
+
+            container.innerHTML = sessionExercises.map((exId, idx) => {
+                const ex = EXERCISES_CATALOG.find(e => e.id === exId);
+                if (!ex) return "";
+                const lastLog = getLastRecordForGym(ex.id, activeGymId);
+                const lastStr = lastLog ? formatCompactRecord(lastLog.sets, ex.tipo_registro, ex) : "Sin registros en esta sede";
+                const meta = [ex.grupo_muscular, ex.equipo, ex.agarre ? `Agarre ${ex.agarre}` : null].filter(Boolean).join(" • ");
+
+                return `
+                <article class="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-4 shadow-sm space-y-3">
+                    <div class="flex items-start justify-between gap-2">
+                        <div onclick="openWorkoutModal('${ex.id}')" class="min-w-0 flex-1 cursor-pointer">
+                            <h3 class="text-base font-bold text-white hover:text-emerald-400 transition truncate">${ex.nombre}</h3>
+                            <p class="text-xs text-slate-400 mt-0.5 truncate">${meta}</p>
+                        </div>
+                        <button onclick="openSwapModal(${idx}, false)" class="shrink-0 text-[11px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1.5 rounded-xl flex items-center gap-1 active:scale-95 transition" title="Máquina ocupada: cambiar por alternativo">
+                            <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i>
+                            Alternativo
+                        </button>
+                    </div>
+                    <div onclick="openWorkoutModal('${ex.id}')" class="pt-2.5 border-t border-slate-800/70 flex items-center justify-between gap-2 cursor-pointer">
+                        <div class="min-w-0 flex items-center gap-2">
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 shrink-0">Última vez:</span>
+                            <span class="font-mono text-xs font-semibold ${lastLog ? 'text-emerald-400' : 'text-slate-500'} truncate">${lastStr}</span>
+                        </div>
+                        <span class="text-xs font-bold text-emerald-400 shrink-0 flex items-center gap-0.5">
+                            Cargar <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                        </span>
+                    </div>
+                </article>`;
+            }).join("");
+            lucide.createIcons();
+        }
+
+        function openSwapModal(index, isExtra) {
+            swapTargetIndex = index;
+            swapIsExtra = isExtra;
+            swapFilterMuscle = false;
+            swapFilterPattern = false;
+            document.getElementById("swapSearchInput").value = "";
+            document.getElementById("swapSuggestionsList").innerHTML = EXERCISES_CATALOG
+                .map(e => `<option value="${e.nombre}">`)
+                .join("");
+
+            const filterControls = document.getElementById("swapFilterControls");
+            
+            if (isExtra) {
+                document.getElementById("swapModalTitle").textContent = "Agregar Ejercicio Extra";
+                document.getElementById("swapModalSubtitle").textContent = "Se sumará solo a esta sesión";
+                filterControls.classList.add("hidden");
+            } else {
+                const currentEx = EXERCISES_CATALOG.find(e => e.id === sessionExercises[index]);
+                document.getElementById("swapModalTitle").textContent = `Reemplazar: ${currentEx.nombre}`;
+                document.getElementById("swapModalSubtitle").textContent = "Ordenado por relevancia o filtra por criterio";
+                document.getElementById("swapBtnMuscle").textContent = `Grupo: ${currentEx.grupo_muscular}`;
+                document.getElementById("swapBtnPattern").textContent = `Patrón: ${currentEx.patron || currentEx.grupo_muscular}`;
+                filterControls.classList.remove("hidden");
+                updateSwapFilterButtonsUI();
+            }
+            renderSwapList();
+            document.getElementById("swapModal").classList.remove("hidden");
+            lucide.createIcons();
+        }
+
+        function toggleSwapFilter(type) {
+            if (type === "muscle") swapFilterMuscle = !swapFilterMuscle;
+            if (type === "pattern") swapFilterPattern = !swapFilterPattern;
+            updateSwapFilterButtonsUI();
+            renderSwapList();
+        }
+
+        function updateSwapFilterButtonsUI() {
+            const btnM = document.getElementById("swapBtnMuscle");
+            const btnP = document.getElementById("swapBtnPattern");
+            btnM.className = `text-[11px] font-semibold px-2.5 py-1.5 rounded-xl border transition ${swapFilterMuscle ? 'bg-emerald-500 text-slate-950 font-bold border-emerald-400' : 'bg-slate-950 text-slate-300 border-slate-800 hover:text-white'}`;
+            btnP.className = `text-[11px] font-semibold px-2.5 py-1.5 rounded-xl border transition ${swapFilterPattern ? 'bg-emerald-500 text-slate-950 font-bold border-emerald-400' : 'bg-slate-950 text-slate-300 border-slate-800 hover:text-white'}`;
+        }
+
+        function closeSwapModal() {
+            document.getElementById("swapModal").classList.add("hidden");
+        }
+
+        function renderSwapList() {
+            const q = document.getElementById("swapSearchInput").value.trim().toLowerCase();
+            let list = [...EXERCISES_CATALOG];
+
+            if (!swapIsExtra && swapTargetIndex !== null) {
+                const currentEx = EXERCISES_CATALOG.find(e => e.id === sessionExercises[swapTargetIndex]);
+                if (currentEx) {
+                    list = list.filter(e => e.id !== currentEx.id);
+                    const curPat = (currentEx.patron || "").toLowerCase();
+
+                    if (swapFilterMuscle || swapFilterPattern) {
+                        list = list.filter(e => {
+                            const matchM = e.grupo_muscular === currentEx.grupo_muscular;
+                            const matchP = curPat && (e.patron || "").toLowerCase() === curPat;
+                            if (swapFilterMuscle && swapFilterPattern) return matchM && matchP;
+                            if (swapFilterMuscle) return matchM;
+                            return matchP;
+                        });
+                    } else {
+                        // Sin filtros activos: priorizar 1) Grupo + Patrón, 2) Solo Grupo, 3) Solo Patrón, 4) Resto (si busca por texto)
+                        const getRank = (e) => {
+                            const matchM = e.grupo_muscular === currentEx.grupo_muscular;
+                            const matchP = curPat && (e.patron || "").toLowerCase() === curPat;
+                            if (matchM && matchP) return 1;
+                            if (matchM) return 2;
+                            if (matchP) return 3;
+                            return 4;
+                        };
+                        if (!q) {
+                            list = list.filter(e => getRank(e) <= 3);
+                        }
+                        list.sort((a, b) => getRank(a) - getRank(b));
+                    }
+                }
+            }
+
+            if (q) {
+                list = list.filter(e => `${e.nombre} ${e.equipo} ${e.grupo_muscular} ${e.patron || ''}`.toLowerCase().includes(q));
+            }
+            const container = document.getElementById("swapList");
+            container.innerHTML = list.map(ex => `
+                <button onclick="confirmSwap('${ex.id}')" class="w-full text-left bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl p-3 flex items-center justify-between transition">
+                    <div>
+                        <p class="text-sm font-bold text-white">${ex.nombre}</p>
+                        <p class="text-[11px] text-slate-400">${ex.grupo_muscular}${ex.patron ? ' • ' + ex.patron : ''} • ${ex.equipo}${ex.agarre ? ' • ' + ex.agarre : ''}</p>
+                    </div>
+                    <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                </button>
+            `).join("") || `<p class="text-xs text-slate-500 text-center py-6">No se encontraron ejercicios con ese filtro.</p>`;
+            lucide.createIcons();
+        }
+
+        function confirmSwap(newExId) {
+            if (swapIsExtra) {
+                sessionExercises.push(newExId);
+                showToast("Ejercicio extra agregado");
+            } else if (swapTargetIndex !== null) {
+                sessionExercises[swapTargetIndex] = newExId;
+                showToast("Ejercicio reemplazado para esta sesión");
+            }
+            closeSwapModal();
+            renderTrainView();
+        }
+
+        // ==========================================
+        // 7. GESTOR DE RUTINAS (CRUD)
+        // ==========================================
+        function renderRoutinesCrudView() {
+            const container = document.getElementById("routinesCrudList");
+            if (routines.length === 0) {
+                container.innerHTML = `<p class="text-center text-xs text-slate-500 py-10">No hay rutinas creadas.</p>`;
+                return;
+            }
+
+            container.innerHTML = routines.map(rut => `
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-base font-bold text-white">${rut.nombre}</h3>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="openRoutineEditor('${rut.id}')" class="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-emerald-400 transition" title="Editar rutina">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            ${routines.length > 1 ? `<button onclick="confirmDeleteRoutine('${rut.id}')" class="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-rose-400 transition" title="Eliminar rutina"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                        </div>
+                    </div>
+                    <div class="space-y-1.5 pt-2 border-t border-slate-800/80">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">${rut.ejercicios.length} ejercicios incluidos:</p>
+                        <div class="flex flex-wrap gap-1.5">
+                            ${rut.ejercicios.map(exId => {
+                                const ex = EXERCISES_CATALOG.find(e => e.id === exId);
+                                return `<span class="text-xs bg-slate-950 border border-slate-800 text-slate-300 px-2.5 py-1 rounded-lg">${ex ? ex.nombre : 'Ejercicio'}</span>`;
+                            }).join("")}
+                        </div>
+                    </div>
+                </div>
+            `).join("");
+            lucide.createIcons();
+        }
+
+        function openRoutineEditor(rutId = null) {
+            editingRoutineId = rutId;
+            routineMuscleFilters = [];
+            renderRoutineMuscleFilterChips();
+            renderRoutineAddExerciseSelect();
+
+            if (rutId) {
+                const rut = routines.find(r => r.id === rutId);
+                document.getElementById("routineEditorTitle").textContent = "Editar Rutina";
+                document.getElementById("routineNameInput").value = rut.nombre;
+                editingRoutineExIds = [...rut.ejercicios];
+            } else {
+                document.getElementById("routineEditorTitle").textContent = "Nueva Rutina";
+                document.getElementById("routineNameInput").value = "";
+                editingRoutineExIds = [];
+            }
+            renderRoutineEditorExercises();
+            document.getElementById("routineEditorModal").classList.remove("hidden");
+            lucide.createIcons();
+        }
+
+        function renderRoutineMuscleFilterChips() {
+            const muscles = ["Espalda", "Pecho", "Piernas", "Hombros", "Bíceps", "Tríceps", "Abdominales", "Cardio", "Multiarticular", "Antebrazos"];
+            const container = document.getElementById("routineMuscleFilterChips");
+            container.innerHTML = muscles.map(m => {
+                const active = routineMuscleFilters.includes(m);
+                return `<button type="button" onclick="toggleRoutineMuscleFilter('${m}')" class="text-[11px] px-2.5 py-1 rounded-full border transition ${active ? 'bg-emerald-500 text-slate-950 font-bold border-emerald-400' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'}">${m}</button>`;
+            }).join("");
+        }
+
+        function toggleRoutineMuscleFilter(muscle) {
+            if (routineMuscleFilters.includes(muscle)) {
+                routineMuscleFilters = routineMuscleFilters.filter(m => m !== muscle);
+            } else {
+                routineMuscleFilters.push(muscle);
+            }
+            renderRoutineMuscleFilterChips();
+            renderRoutineAddExerciseSelect();
+        }
+
+        function renderRoutineAddExerciseSelect() {
+            const select = document.getElementById("routineAddExerciseSelect");
+            const filtered = routineMuscleFilters.length > 0
+                ? EXERCISES_CATALOG.filter(e => routineMuscleFilters.includes(e.grupo_muscular))
+                : EXERCISES_CATALOG;
+            if (filtered.length === 0) {
+                select.innerHTML = `<option value="">Sin ejercicios para este filtro</option>`;
+                return;
+            }
+            select.innerHTML = filtered.map(e => `<option value="${e.id}">${e.nombre} (${e.grupo_muscular} - ${e.equipo})</option>`).join("");
+        }
+
+        function closeRoutineEditor() {
+            document.getElementById("routineEditorModal").classList.add("hidden");
+            editingRoutineId = null;
+        }
+
+        function renderRoutineEditorExercises() {
+            const container = document.getElementById("routineEditorExercisesList");
+            if (editingRoutineExIds.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">No hay ejercicios en esta rutina.</p>`;
+                return;
+            }
+            container.innerHTML = editingRoutineExIds.map((exId, idx) => {
+                const ex = EXERCISES_CATALOG.find(e => e.id === exId);
+                if (!ex) return "";
+                return `
+                <div class="flex items-center justify-between gap-2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="font-mono text-xs font-bold text-slate-500 w-4 shrink-0">${idx + 1}.</span>
+                        <div class="min-w-0">
+                            <p class="text-sm font-bold text-white truncate">${ex.nombre}</p>
+                            <p class="text-[11px] text-slate-400 truncate">${ex.grupo_muscular} • ${ex.equipo}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button type="button" onclick="moveRoutineExercise(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="p-1.5 rounded-lg bg-slate-900 text-slate-400 hover:text-emerald-400 disabled:opacity-30 disabled:pointer-events-none" title="Subir">
+                            <i data-lucide="chevron-up" class="w-4 h-4"></i>
+                        </button>
+                        <button type="button" onclick="moveRoutineExercise(${idx}, 1)" ${idx === editingRoutineExIds.length - 1 ? 'disabled' : ''} class="p-1.5 rounded-lg bg-slate-900 text-slate-400 hover:text-emerald-400 disabled:opacity-30 disabled:pointer-events-none" title="Bajar">
+                            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                        </button>
+                        <button type="button" onclick="editingRoutineExIds.splice(${idx}, 1); renderRoutineEditorExercises();" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-400" title="Quitar">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>`;
+            }).join("");
+            lucide.createIcons();
+        }
+
+        function moveRoutineExercise(index, direction) {
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= editingRoutineExIds.length) return;
+            const temp = editingRoutineExIds[index];
+            editingRoutineExIds[index] = editingRoutineExIds[targetIndex];
+            editingRoutineExIds[targetIndex] = temp;
+            renderRoutineEditorExercises();
+        }
+
+        function addExerciseToRoutineEditor() {
+            const select = document.getElementById("routineAddExerciseSelect");
+            const exId = select.value;
+            if (!exId) return;
+            if (!editingRoutineExIds.includes(exId)) {
+                editingRoutineExIds.push(exId);
+                renderRoutineEditorExercises();
+            }
+        }
+
+        function saveRoutine() {
+            const name = document.getElementById("routineNameInput").value.trim();
+            if (!name) return showToast("Escribe un nombre para la rutina");
+            if (editingRoutineExIds.length === 0) return showToast("Agrega al menos un ejercicio");
+
+            if (editingRoutineId) {
+                const idx = routines.findIndex(r => r.id === editingRoutineId);
+                if (idx !== -1) {
+                    routines[idx].nombre = name;
+                    routines[idx].ejercicios = [...editingRoutineExIds];
+                }
+                showToast("Rutina actualizada");
+            } else {
+                const newRut = {
+                    id: "rut_" + Date.now(),
+                    nombre: name,
+                    ejercicios: [...editingRoutineExIds]
+                };
+                routines.push(newRut);
+                activeRoutineId = newRut.id;
+                showToast("Rutina creada");
+            }
+
+            localStorage.setItem(STORAGE_KEYS.ROUTINES, JSON.stringify(routines));
+            localStorage.setItem(STORAGE_KEYS.ACTIVE_ROUTINE, activeRoutineId);
+            closeRoutineEditor();
+            renderActiveRoutineSelect();
+            syncSessionExercises();
+            renderRoutinesCrudView();
+        }
+
+        function confirmDeleteRoutine(rutId) {
+            if (routines.length <= 1) return showToast("Debes tener al menos una rutina");
+            openConfirmModal("Eliminar Rutina", "¿Estás seguro de eliminar esta rutina?", () => {
+                routines = routines.filter(r => r.id !== rutId);
+                if (activeRoutineId === rutId) activeRoutineId = routines[0].id;
+                localStorage.setItem(STORAGE_KEYS.ROUTINES, JSON.stringify(routines));
+                localStorage.setItem(STORAGE_KEYS.ACTIVE_ROUTINE, activeRoutineId);
+                renderActiveRoutineSelect();
+                syncSessionExercises();
+                renderRoutinesCrudView();
+                showToast("Rutina eliminada");
+            });
+        }
+
+        // ==========================================
+        // 8. MODAL DE CARGA DE SERIES
+        // ==========================================
+        function openWorkoutModal(exId) {
+            activeWorkoutExId = exId;
+            const ex = EXERCISES_CATALOG.find(e => e.id === exId);
+            if (!ex) return;
+
+            document.getElementById("modalMuscleBadge").textContent = ex.grupo_muscular;
+            const gymName = gyms.find(g => g.id === activeGymId)?.nombre || "";
+            document.getElementById("modalGymBadge").textContent = gymName;
+            document.getElementById("modalTitle").textContent = ex.nombre;
+            document.getElementById("modalMeta").textContent = [ex.patron, ex.equipo, ex.agarre ? `Agarre ${ex.agarre}` : null].filter(Boolean).join(" • ");
+            
+            document.getElementById("workoutDateInput").value = getTodayISO();
+
+            const lastLog = getLastRecordForGym(exId, activeGymId);
+            const lastStr = lastLog ? formatCompactRecord(lastLog.sets, ex.tipo_registro, ex) : "Sin registros previos en esta sede";
+            document.getElementById("modalLastRecord").textContent = lastStr;
+
+            const lastNoteEl = document.getElementById("modalLastNote");
+            if (lastLog && lastLog.note) {
+                document.getElementById("modalLastNoteText").textContent = lastLog.note;
+                lastNoteEl.classList.remove("hidden");
+            } else {
+                lastNoteEl.classList.add("hidden");
+            }
+            document.getElementById("workoutNoteInput").value = "";
+
+            const isBW = isBodyweightExercise(ex);
+            if (lastLog && lastLog.sets && lastLog.sets.length > 0) {
+                currentSets = lastLog.sets.map(s => ({ p: isBW ? 0 : s.p, r: s.r }));
+            } else {
+                currentSets = ex.tipo_registro === "tiempo_distancia"
+                    ? [{ p: 20, r: 3 }]
+                    : [{ p: isBW ? 0 : 20, r: 12 }, { p: isBW ? 0 : 20, r: 10 }, { p: isBW ? 0 : 20, r: 10 }];
+            }
+
+            renderSetsContainer();
+            document.getElementById("workoutModal").classList.remove("hidden");
+            lucide.createIcons();
+        }
+
+        function closeWorkoutModal() {
+            document.getElementById("workoutModal").classList.add("hidden");
+            activeWorkoutExId = null;
+        }
+
+        function repeatLastSession() {
+            if (!activeWorkoutExId) return;
+            const ex = EXERCISES_CATALOG.find(e => e.id === activeWorkoutExId);
+            const lastLog = getLastRecordForGym(activeWorkoutExId, activeGymId);
+            if (!lastLog || !lastLog.sets || lastLog.sets.length === 0) {
+                return showToast("No hay registro previo en esta sede");
+            }
+            const isBW = isBodyweightExercise(ex);
+            currentSets = lastLog.sets.map(s => ({ p: isBW ? 0 : s.p, r: s.r }));
+            renderSetsContainer();
+            showToast("Series de la última sesión cargadas");
+        }
+
+        function renderSetsContainer() {
+            const ex = EXERCISES_CATALOG.find(e => e.id === activeWorkoutExId);
+            const isCardio = ex && ex.tipo_registro === "tiempo_distancia";
+            const isBW = isBodyweightExercise(ex);
+            const l1 = isCardio ? "Min" : "Kg";
+            const l2 = isCardio ? "Km" : "Reps";
+
+            const container = document.getElementById("setsContainer");
+            container.innerHTML = currentSets.map((s, idx) => `
+                <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-xl p-2.5">
+                    <span class="w-7 text-center font-mono text-xs font-bold text-slate-500">#${idx + 1}</span>
+                    ${!isBW ? `
+                    <div class="flex-1 flex items-center bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5">
+                        <input type="number" step="0.5" value="${s.p}" oninput="currentSets[${idx}].p = parseFloat(this.value) || 0; updateLivePreview()" class="w-full bg-transparent font-mono text-xs font-bold text-white text-center focus:outline-none">
+                        <span class="text-[10px] text-slate-400 ml-1 font-semibold">${l1}</span>
+                    </div>
+                    <span class="text-slate-500 text-xs">×</span>
+                    ` : ''}
+                    <div class="flex-1 flex items-center bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5">
+                        <input type="number" step="${isCardio ? '0.1' : '1'}" value="${s.r}" oninput="currentSets[${idx}].r = parseFloat(this.value) || 0; updateLivePreview()" class="w-full bg-transparent font-mono text-xs font-bold text-white text-center focus:outline-none">
+                        <span class="text-[10px] text-slate-400 ml-1 font-semibold">${l2}</span>
+                    </div>
+                    <button onclick="currentSets.splice(${idx}, 1); renderSetsContainer(); updateLivePreview();" class="p-1.5 text-slate-500 hover:text-rose-400 transition" title="Eliminar serie">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `).join("");
+
+            document.getElementById("seriesCountBadge").textContent = `${currentSets.length} serie${currentSets.length === 1 ? '' : 's'}`;
+            updateLivePreview();
+            lucide.createIcons();
+        }
+
+        function addSetRow() {
+            const ex = EXERCISES_CATALOG.find(e => e.id === activeWorkoutExId);
+            const isBW = isBodyweightExercise(ex);
+            const last = currentSets.length > 0 ? currentSets[currentSets.length - 1] : { p: isBW ? 0 : 40, r: 10 };
+            currentSets.push({ p: isBW ? 0 : last.p, r: last.r });
+            renderSetsContainer();
+        }
+
+        function updateLivePreview() {
+            const ex = EXERCISES_CATALOG.find(e => e.id === activeWorkoutExId);
+            const str = formatCompactRecord(currentSets, ex ? ex.tipo_registro : "peso_reps", ex);
+            document.getElementById("livePreviewText").textContent = str;
+        }
+
+        function saveCurrentWorkout() {
+            if (!activeWorkoutExId || currentSets.length === 0) return showToast("Agrega al menos una serie");
+            const date = document.getElementById("workoutDateInput").value || getTodayISO();
+            const note = document.getElementById("workoutNoteInput").value.trim();
+
+            const newLog = {
+                id: "log_" + Date.now(),
+                date: date,
+                gymId: activeGymId,
+                exerciseId: activeWorkoutExId,
+                sets: currentSets.map(s => ({ p: s.p, r: s.r })),
+                ...(note ? { note } : {})
+            };
+
+            workoutLogs.push(newLog);
+            localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(workoutLogs));
+            closeWorkoutModal();
+            renderTrainView();
+            showToast("Entrenamiento guardado con éxito");
+        }
+
+        // ==========================================
+        // 9. HISTORIAL (EDITABLE) Y CATÁLOGO (CRUD)
+        // ==========================================
+        function toggleHistoryMenu(e) {
+            e.stopPropagation();
+            document.getElementById("historyMoreMenu").classList.toggle("hidden");
+        }
+
+        function closeHistoryMenu() {
+            document.getElementById("historyMoreMenu").classList.add("hidden");
+        }
+
+        function openDateFilterModal() {
+            document.getElementById("filterDateFrom").value = historyDateFrom;
+            document.getElementById("filterDateTo").value = historyDateTo;
+            document.querySelectorAll(".quick-date-btn").forEach(btn => {
+                const isActive = btn.dataset.quick === historyQuickMode;
+                btn.className = isActive
+                    ? "quick-date-btn py-2 px-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 hover:bg-emerald-500/25 text-emerald-400 font-bold text-xs transition"
+                    : "quick-date-btn py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition";
+            });
+            document.getElementById("dateFilterModal").classList.remove("hidden");
+            lucide.createIcons();
+        }
+
+        function closeDateFilterModal() {
+            document.getElementById("dateFilterModal").classList.add("hidden");
+        }
+
+        function applyQuickDateFilter(mode) {
+            const today = new Date();
+            const offset = today.getTimezoneOffset() * 60000;
+            const toLocalISO = (d) => new Date(d.getTime() - offset).toISOString().split("T")[0];
+            historyQuickMode = mode;
+
+            if (mode === "today") {
+                const iso = toLocalISO(today);
+                historyDateFrom = iso;
+                historyDateTo = iso;
+            } else if (mode === "yesterday") {
+                const yest = new Date(today);
+                yest.setDate(today.getDate() - 1);
+                const iso = toLocalISO(yest);
+                historyDateFrom = iso;
+                historyDateTo = iso;
+            } else if (mode === "7days") {
+                const past = new Date(today);
+                past.setDate(today.getDate() - 7);
+                historyDateFrom = toLocalISO(past);
+                historyDateTo = toLocalISO(today);
+            } else if (mode === "month") {
+                const pastMonth = new Date(today);
+                pastMonth.setMonth(today.getMonth() - 1);
+                historyDateFrom = toLocalISO(pastMonth);
+                historyDateTo = toLocalISO(today);
+            }
+            closeDateFilterModal();
+            renderHistoryView();
+        }
+
+        function applyCustomDateFilter() {
+            historyQuickMode = "";
+            historyDateFrom = document.getElementById("filterDateFrom").value;
+            historyDateTo = document.getElementById("filterDateTo").value;
+            closeDateFilterModal();
+            renderHistoryView();
+        }
+
+        function clearDateFilter() {
+            historyQuickMode = "";
+            historyDateFrom = "";
+            historyDateTo = "";
+            renderHistoryView();
+        }
+
+        function populateHistoryFilterOptions() {
+            const muscleSelect = document.getElementById("historyFilterMuscle");
+            const exSelect = document.getElementById("historyFilterExercise");
+            const prevMuscle = muscleSelect.value || "all";
+            const prevEx = exSelect.value || "all";
+
+            const muscles = [...new Set(EXERCISES_CATALOG.map(e => e.grupo_muscular))].sort();
+            muscleSelect.innerHTML = `<option value="all">Todos los grupos</option>` +
+                muscles.map(m => `<option value="${m}">${m}</option>`).join("");
+            muscleSelect.value = muscles.includes(prevMuscle) ? prevMuscle : "all";
+
+            const activeMuscle = muscleSelect.value;
+            const filteredCatalog = activeMuscle === "all"
+                ? EXERCISES_CATALOG
+                : EXERCISES_CATALOG.filter(e => e.grupo_muscular === activeMuscle);
+
+            exSelect.innerHTML = `<option value="all">Todos los ejercicios</option>` +
+                filteredCatalog.map(e => `<option value="${e.id}">${e.nombre}</option>`).join("");
+            exSelect.value = filteredCatalog.some(e => e.id === prevEx) ? prevEx : "all";
+        }
+
+        function onHistoryMuscleFilterChange() {
+            populateHistoryFilterOptions();
+            renderHistoryView();
+        }
+
+        function getFilteredHistoryLogs() {
+            const filterMode = document.getElementById("historyFilterGym").value;
+            const muscleFilter = document.getElementById("historyFilterMuscle").value;
+            const exerciseFilter = document.getElementById("historyFilterExercise").value;
+
+            return workoutLogs
+                .filter(l => {
+                    if (filterMode !== "all" && l.gymId !== activeGymId) return false;
+                    if (historyDateFrom && l.date < historyDateFrom) return false;
+                    if (historyDateTo && l.date > historyDateTo) return false;
+                    const ex = EXERCISES_CATALOG.find(e => e.id === l.exerciseId);
+                    if (muscleFilter !== "all" && (!ex || ex.grupo_muscular !== muscleFilter)) return false;
+                    if (exerciseFilter !== "all" && l.exerciseId !== exerciseFilter) return false;
+                    return true;
+                })
+                .sort((a, b) => b.date.localeCompare(a.date));
+        }
+
+        function renderHistoryView() {
+            populateHistoryFilterOptions();
+            const gymName = gyms.find(g => g.id === activeGymId)?.nombre || "";
+            document.getElementById("historyGymName").textContent = gymName;
+
+            const hasDateFilter = Boolean(historyDateFrom || historyDateTo);
+            document.getElementById("dateFilterDot").classList.toggle("hidden", !hasDateFilter);
+            const banner = document.getElementById("activeDateFilterBanner");
+            if (hasDateFilter) {
+                banner.classList.remove("hidden");
+                const fromTxt = historyDateFrom || "Inicio";
+                const toTxt = historyDateTo || "Hoy";
+                document.getElementById("activeDateFilterText").textContent = fromTxt === toTxt ? `Fecha: ${fromTxt}` : `${fromTxt} al ${toTxt}`;
+            } else {
+                banner.classList.add("hidden");
+            }
+            
+            const logs = getFilteredHistoryLogs();
+
+            const container = document.getElementById("historyList");
+            if (logs.length === 0) {
+                container.innerHTML = `<p class="text-center text-xs text-slate-500 py-10">No hay entrenamientos registrados para este filtro.</p>`;
+                return;
+            }
+
+            container.innerHTML = logs.map(l => {
+                const ex = EXERCISES_CATALOG.find(e => e.id === l.exerciseId);
+                const gName = gyms.find(g => g.id === l.gymId)?.nombre || "Sede";
+                if (!ex) return "";
+                return `
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-2">
+                    <div class="flex items-center justify-between text-[11px]">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono font-semibold text-slate-400">${l.date}</span>
+                            <span class="text-[10px] font-bold text-emerald-400/90 bg-emerald-500/10 px-1.5 py-0.5 rounded">${ex.grupo_muscular}</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 font-medium">${gName}</span>
+                    </div>
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0 flex-1">
+                            <h4 class="text-sm font-bold text-white">${ex.nombre}</h4>
+                            <p class="font-mono text-xs font-semibold text-emerald-400 mt-0.5">${formatCompactRecord(l.sets, ex.tipo_registro, ex)}</p>
+                            ${l.note ? `<p class="text-[11px] text-amber-300/90 mt-1.5 flex items-start gap-1"><i data-lucide="sticky-note" class="w-3 h-3 shrink-0 mt-0.5 text-amber-400"></i><span>${l.note}</span></p>` : ''}
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button onclick="openEditHistoryModal('${l.id}')" class="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-emerald-400 transition" title="Editar registro">
+                                <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="confirmDeleteHistory('${l.id}')" class="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-rose-400 transition" title="Eliminar registro">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join("");
+            lucide.createIcons();
+        }
+
+        function exportFilteredCSV() {
+            const logs = getFilteredHistoryLogs();
+            if (logs.length === 0) return showToast("No hay registros visibles para exportar");
+
+            const escapeCSV = (val) => {
+                const str = String(val ?? "");
+                if (str.includes('"') || str.includes(",") || str.includes(";") || str.includes("\n")) {
+                    return `"${str.replace(/"/g, '""')}"`;
+                }
+                return str;
+            };
+
+            const headers = ["Fecha", "Sede", "Grupo Muscular", "Ejercicio", "Equipo", "Resumen Series", "Peso Max (Kg)", "Reps Totales", "Nota"];
+            const rows = logs.map(l => {
+                const ex = EXERCISES_CATALOG.find(e => e.id === l.exerciseId) || {};
+                const gName = gyms.find(g => g.id === l.gymId)?.nombre || "Sede";
+                const isCardio = ex.tipo_registro === "tiempo_distancia";
+                const isBW = isBodyweightExercise(ex);
+                const maxWeight = (isCardio || isBW) ? "" : Math.max(...l.sets.map(s => Number(s.p) || 0));
+                const totalReps = isCardio ? "" : l.sets.reduce((acc, s) => acc + (Number(s.r) || 0), 0);
+
+                return [
+                    l.date,
+                    gName,
+                    ex.grupo_muscular || "",
+                    ex.nombre || "",
+                    ex.equipo || "",
+                    formatCompactRecord(l.sets, ex.tipo_registro, ex),
+                    maxWeight,
+                    totalReps,
+                    l.note || ""
+                ].map(escapeCSV).join(",");
+            });
+
+            const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\n");
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `liftnote-historial-${getTodayISO()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`CSV exportado (${logs.length} registros)`);
+        }
+
+        function openEditHistoryModal(logId) {
+            const log = workoutLogs.find(l => l.id === logId);
+            if (!log) return;
+            editingLogId = logId;
+            editHistSets = log.sets.map(s => ({ p: s.p, r: s.r }));
+
+            document.getElementById("editHistDate").value = log.date;
+            document.getElementById("editHistGym").innerHTML = gyms.map(g => `<option value="${g.id}">${g.nombre}</option>`).join("");
+            document.getElementById("editHistGym").value = log.gymId;
+
+            document.getElementById("editHistExercise").innerHTML = EXERCISES_CATALOG.map(e => `<option value="${e.id}">${e.nombre} (${e.grupo_muscular})</option>`).join("");
+            document.getElementById("editHistExercise").value = log.exerciseId;
+            document.getElementById("editHistNote").value = log.note || "";
+
+            renderEditHistSets();
+            document.getElementById("editHistoryModal").classList.remove("hidden");
+            lucide.createIcons();
+        }
+
+        function closeEditHistoryModal() {
+            document.getElementById("editHistoryModal").classList.add("hidden");
+            editingLogId = null;
+        }
+
+        function renderEditHistSets() {
+            const exId = document.getElementById("editHistExercise").value;
+            const ex = EXERCISES_CATALOG.find(e => e.id === exId);
+            const isCardio = ex && ex.tipo_registro === "tiempo_distancia";
+            const isBW = isBodyweightExercise(ex);
+            const l1 = isCardio ? "Min" : "Kg";
+            const l2 = isCardio ? "Km" : "Reps";
+
+            document.getElementById("editHistSetsContainer").innerHTML = editHistSets.map((s, idx) => `
+                <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-xl p-2">
+                    <span class="w-6 text-center font-mono text-xs font-bold text-slate-500">#${idx + 1}</span>
+                    ${!isBW ? `
+                    <div class="flex-1 flex items-center bg-slate-900 border border-slate-700/80 rounded-lg px-2 py-1">
+                        <input type="number" step="0.5" value="${s.p}" oninput="editHistSets[${idx}].p = parseFloat(this.value) || 0" class="w-full bg-transparent font-mono text-xs font-bold text-white text-center focus:outline-none">
+                        <span class="text-[10px] text-slate-400 ml-1">${l1}</span>
+                    </div>
+                    <span class="text-slate-500 text-xs">×</span>
+                    ` : ''}
+                    <div class="flex-1 flex items-center bg-slate-900 border border-slate-700/80 rounded-lg px-2 py-1">
+                        <input type="number" step="${isCardio ? '0.1' : '1'}" value="${s.r}" oninput="editHistSets[${idx}].r = parseFloat(this.value) || 0" class="w-full bg-transparent font-mono text-xs font-bold text-white text-center focus:outline-none">
+                        <span class="text-[10px] text-slate-400 ml-1">${l2}</span>
+                    </div>
+                    <button onclick="editHistSets.splice(${idx}, 1); renderEditHistSets();" class="p-1 text-slate-500 hover:text-rose-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                </div>
+            `).join("");
+            lucide.createIcons();
+        }
+        function getTierBadgeHTML(tier) {
+            const t = (tier || "A").toUpperCase();
+            const styles = {
+                S: "bg-amber-500/20 text-amber-300 border-amber-400/40",
+                A: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+                B: "bg-sky-500/15 text-sky-400 border-sky-500/30",
+                C: "bg-slate-700/60 text-slate-300 border-slate-600/50",
+                D: "bg-rose-500/15 text-rose-400 border-rose-500/30"
+            };
+            const labels = {
+                S: "★ S",
+                A: "A",
+                B: "B",
+                C: "C",
+                D: "⚠ D"
+            };
+            return `<span class="text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded border ${styles[t] || styles.A}" title="Calificación de eficacia: Tier ${t}">${labels[t] || t}</span>`;
+        }
+
+        function renderCatalogView() {
+            const muscles = ["Todos", "Espalda", "Pecho", "Piernas", "Hombros", "Bíceps", "Tríceps", "Abdominales", "Cardio", "Multiarticular", "Antebrazos"];
+            document.getElementById("catalogMuscleChips").innerHTML = muscles.map(m => `
+                <button onclick="setCatalogMuscle('${m}')" class="shrink-0 text-xs px-3 py-1.5 rounded-full border transition ${m === catalogMuscleFilter ? 'bg-emerald-500 text-slate-950 font-bold border-emerald-400' : 'bg-slate-900 text-slate-300 border-slate-800'}">${m}</button>
+            `).join("");
+
+            const q = document.getElementById("catalogSearchInput").value.trim().toLowerCase();
+            const tierFilter = document.getElementById("catalogTierFilter")?.value || "ALL";
+            const sortMode = document.getElementById("catalogSortSelect")?.value || "tier";
+            const tierOrder = { S: 1, A: 2, B: 3, C: 4, D: 5 };
+
+            const filtered = EXERCISES_CATALOG.filter(ex => {
+                if (catalogMuscleFilter !== "Todos" && ex.grupo_muscular !== catalogMuscleFilter) return false;
+                if (tierFilter !== "ALL" && (ex.tier || "A") !== tierFilter) return false;
+                if (q && !`${ex.nombre} ${ex.grupo_muscular} ${ex.patron || ''} ${ex.equipo} ${ex.agarre || ''}`.toLowerCase().includes(q)) return false;
+                return true;
+            }).sort((a, b) => {
+                if (sortMode === "tier") {
+                    const diff = (tierOrder[a.tier || "A"] || 9) - (tierOrder[b.tier || "A"] || 9);
+                    if (diff !== 0) return diff;
+                }
+                return a.nombre.localeCompare(b.nombre);
+            });
+
+            document.getElementById("catalogCountLabel").textContent = `${filtered.length} ejercicio${filtered.length === 1 ? '' : 's'}`;
+            document.getElementById("catalogList").innerHTML = filtered.map(ex => {
+                const lastLog = getLastRecordForGym(ex.id, activeGymId);
+                return `
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 hover:border-emerald-500/40 transition">
+                    <div class="flex items-start justify-between gap-2">
+                        <div onclick="openWorkoutModal('${ex.id}')" class="min-w-0 flex-1 cursor-pointer">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                ${getTierBadgeHTML(ex.tier)}
+                                <h4 class="text-sm font-bold text-white">${ex.nombre}</h4>
+                                <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">${ex.grupo_muscular}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-0.5">${ex.patron ? ex.patron + ' • ' : ''}${ex.equipo}${ex.agarre ? ' • Agarre ' + ex.agarre : ''}</p>
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button onclick="openCatalogEditor('${ex.id}')" class="p-1.5 rounded-lg bg-slate-800/80 text-slate-400 hover:text-emerald-400" title="Editar ejercicio">
+                                <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="confirmDeleteCatalogExercise('${ex.id}')" class="p-1.5 rounded-lg bg-slate-800/80 text-slate-400 hover:text-rose-400" title="Eliminar del catálogo">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                    ${lastLog ? `<p onclick="openWorkoutModal('${ex.id}')" class="font-mono text-[11px] text-emerald-400 mt-2 pt-2 border-t border-slate-800/70 cursor-pointer">Última vez: ${formatCompactRecord(lastLog.sets, ex.tipo_registro, ex)}</p>` : ''}
+                </div>`;
+            }).join("");
+            lucide.createIcons();
+        }
+
+        function populatePatternSuggestions() {
+            const patterns = [...new Set(EXERCISES_CATALOG.map(e => e.patron).filter(Boolean))].sort();
+            document.getElementById("patternSuggestionsList").innerHTML = patterns.map(p => `<option value="${p}">`).join("");
+        }
+
+        function openCatalogEditor(exId = null) {
+            editingCatalogExId = exId;
+            populatePatternSuggestions();
+            if (exId) {
+                const ex = EXERCISES_CATALOG.find(e => e.id === exId);
+                if (!ex) return;
+                document.getElementById("catalogEditorTitle").textContent = "Editar Ejercicio";
+                document.getElementById("catNewName").value = ex.nombre || "";
+                document.getElementById("catNewMuscle").value = ex.grupo_muscular || "Espalda";
+                document.getElementById("catNewTier").value = ex.tier || "A";
+                document.getElementById("catNewPattern").value = ex.patron || "";
+                document.getElementById("catNewEquipment").value = ex.equipo || "";
+                document.getElementById("catNewGrip").value = ex.agarre || "";
+            } else {
+                document.getElementById("catalogEditorTitle").textContent = "Nuevo Ejercicio";
+                document.getElementById("catNewName").value = "";
+                document.getElementById("catNewMuscle").value = "Espalda";
+                document.getElementById("catNewTier").value = "A";
+                document.getElementById("catNewPattern").value = "";
+                document.getElementById("catNewEquipment").value = "";
+                document.getElementById("catNewGrip").value = "";
+            }
+            document.getElementById("catalogEditorModal").classList.remove("hidden");
+            lucide.createIcons();
+        }
+
+        function closeCatalogEditor() {
+            document.getElementById("catalogEditorModal").classList.add("hidden");
+            editingCatalogExId = null;
+        }
+
+        function saveCatalogExercise() {
+            const nombre = document.getElementById("catNewName").value.trim();
+            const grupo_muscular = document.getElementById("catNewMuscle").value;
+            const tier = document.getElementById("catNewTier").value || "A";
+            const patron = document.getElementById("catNewPattern").value.trim();
+            const equipo = document.getElementById("catNewEquipment").value.trim();
+            const agarre = document.getElementById("catNewGrip").value.trim() || null;
+
+            if (!nombre || !equipo) return showToast("Nombre y equipo son obligatorios");
+
+            if (editingCatalogExId) {
+                const idx = EXERCISES_CATALOG.findIndex(e => e.id === editingCatalogExId);
+                if (idx !== -1) {
+                    EXERCISES_CATALOG[idx] = {
+                        ...EXERCISES_CATALOG[idx],
+                        nombre,
+                        grupo_muscular,
+                        tier,
+                        patron: patron || grupo_muscular,
+                        equipo,
+                        agarre,
+                        tipo_registro: grupo_muscular === "Cardio" ? "tiempo_distancia" : "peso_reps"
+                    };
+                }
+                showToast("Ejercicio actualizado");
+            } else {
+                const newEx = {
+                    id: "custom_" + Date.now(),
+                    nombre,
+                    grupo_muscular,
+                    tier,
+                    patron: patron || grupo_muscular,
+                    equipo,
+                    agarre,
+                    variante: null,
+                    tipo_registro: grupo_muscular === "Cardio" ? "tiempo_distancia" : "peso_reps"
+                };
+                EXERCISES_CATALOG.unshift(newEx);
+                showToast("Ejercicio agregado al catálogo");
+            }
+
+            localStorage.setItem(STORAGE_KEYS.CATALOG, JSON.stringify(EXERCISES_CATALOG));
+            closeCatalogEditor();
+            renderCatalogView();
+            if (currentTab === "train") renderTrainView();
+        }
+
+        function confirmDeleteCatalogExercise(exId) {
+            const ex = EXERCISES_CATALOG.find(e => e.id === exId);
+            openConfirmModal("Eliminar ejercicio", `¿Quitar "${ex?.nombre}" de tu catálogo?`, () => {
+                EXERCISES_CATALOG = EXERCISES_CATALOG.filter(e => e.id !== exId);
+                localStorage.setItem(STORAGE_KEYS.CATALOG, JSON.stringify(EXERCISES_CATALOG));
+                renderCatalogView();
+                showToast("Ejercicio eliminado del catálogo");
+            });
+        }
+
+        function confirmResetCatalog() {
+            openConfirmModal("Restaurar Catálogo Original", "¿Deseas restaurar la lista original de ejercicios? Se perderán los ejercicios personalizados agregados.", () => {
+                EXERCISES_CATALOG = JSON.parse(JSON.stringify(DEFAULT_CATALOG));
+                localStorage.setItem(STORAGE_KEYS.CATALOG, JSON.stringify(EXERCISES_CATALOG));
+                renderCatalogView();
+                showToast("Catálogo original restaurado");
+            });
+        }
+
+        function openConfirmModal(title, message, onConfirm) {
+            document.getElementById("confirmTitle").textContent = title;
+            document.getElementById("confirmMessage").textContent = message;
+            const btn = document.getElementById("confirmActionBtn");
+            btn.onclick = () => {
+                closeConfirmModal();
+                onConfirm();
+            };
+            document.getElementById("confirmModal").classList.remove("hidden");
+            lucide.createIcons();
+        }
+
+        function closeConfirmModal() {
+            document.getElementById("confirmModal").classList.add("hidden");
+        }
+
+        function setCatalogMuscle(m) {
+            catalogMuscleFilter = m;
+            renderCatalogView();
+        }
+
+        // ==========================================
+        // 10. ESTADÍSTICAS, MAPA DE CALOR Y GENERADOR DE RUTINA
+        // ==========================================
+        const HEATMAP_MUSCLES = ["Espalda", "Pecho", "Piernas", "Hombros", "Bíceps", "Tríceps", "Abdominales", "Antebrazos"];
+
+        function getMuscleRecoveryStats() {
+            const todayStr = getTodayISO();
+            const todayDate = new Date(todayStr + "T00:00:00");
+
+            return HEATMAP_MUSCLES.map(muscle => {
+                const logsForMuscle = workoutLogs.filter(l => {
+                    const ex = EXERCISES_CATALOG.find(e => e.id === l.exerciseId);
+                    if (!ex) return false;
+                    if (ex.grupo_muscular === muscle) return true;
+                    // Peso muerto (Multiarticular) también impacta en Piernas y Espalda
+                    if (ex.grupo_muscular === "Multiarticular" && (muscle === "Piernas" || muscle === "Espalda")) return true;
+                    return false;
+                }).sort((a, b) => b.date.localeCompare(a.date));
+
+                if (logsForMuscle.length === 0) {
+                    return {
+                        muscle,
+                        daysAgo: 999,
+                        lastDate: null,
+                        statusLabel: "Sin registros",
+                        cardClass: "bg-cyan-950/35 border-cyan-500/35 text-cyan-300",
+                        badgeClass: "bg-cyan-500/20 text-cyan-300",
+                        dotClass: "bg-cyan-400"
+                    };
+                }
+
+                const lastDateStr = logsForMuscle[0].date;
+                const lastDate = new Date(lastDateStr + "T00:00:00");
+                const diffDays = Math.max(0, Math.round((todayDate - lastDate) / (1000 * 60 * 60 * 24)));
+
+                if (diffDays <= 1) {
+                    return {
+                        muscle,
+                        daysAgo: diffDays,
+                        lastDate: lastDateStr,
+                        statusLabel: diffDays === 0 ? "Hoy (Fatiga)" : "Hace 1 día",
+                        cardClass: "bg-rose-950/45 border-rose-500/45 text-rose-200",
+                        badgeClass: "bg-rose-500/20 text-rose-300",
+                        dotClass: "bg-rose-500"
+                    };
+                } else if (diffDays <= 3) {
+                    return {
+                        muscle,
+                        daysAgo: diffDays,
+                        lastDate: lastDateStr,
+                        statusLabel: `Hace ${diffDays} días`,
+                        cardClass: "bg-amber-950/35 border-amber-500/40 text-amber-200",
+                        badgeClass: "bg-amber-500/20 text-amber-300",
+                        dotClass: "bg-amber-400"
+                    };
+                } else {
+                    return {
+                        muscle,
+                        daysAgo: diffDays,
+                        lastDate: lastDateStr,
+                        statusLabel: `Hace ${diffDays}d • Listo`,
+                        cardClass: "bg-cyan-950/40 border-cyan-500/40 text-cyan-200",
+                        badgeClass: "bg-cyan-500/20 text-cyan-300",
+                        dotClass: "bg-cyan-400"
+                    };
+                }
+            });
+        }
+
+        function renderStatsView() {
+            const recovery = getMuscleRecoveryStats();
+
+            // Render Mapa de Calor
+            const grid = document.getElementById("muscleHeatmapGrid");
+            grid.innerHTML = recovery.map(item => {
+                const isSelected = smartTargetMuscles.includes(item.muscle);
+                return `
+                <button type="button" onclick="toggleSmartMuscle('${item.muscle}')" class="text-left rounded-xl p-3 border transition active:scale-[0.98] ${item.cardClass} ${isSelected ? 'ring-2 ring-emerald-400' : ''}">
+                    <div class="flex items-center justify-between gap-1.5">
+                        <span class="text-xs font-extrabold text-white flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full shrink-0 ${item.dotClass}"></span>
+                            ${item.muscle}
+                        </span>
+                        ${isSelected ? `<i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>` : ''}
+                    </div>
+                    <div class="mt-1.5 flex items-center justify-between">
+                        <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${item.badgeClass}">${item.statusLabel}</span>
+                    </div>
+                </button>`;
+            }).join("");
+
+            // Render Chips del Generador Inteligente
+            if (smartTargetMuscles.length === 0) {
+                autoSelectColdMuscles(false);
+            }
+            renderSmartMuscleChips();
+            setSmartCount(smartExerciseCount, false);
+
+            // Poblar selector de ejercicios para el gráfico (priorizando los que ya tienen registros)
+            const exSelect = document.getElementById("statsExerciseSelect");
+            const prevVal = exSelect.value;
+            const loggedIds = new Set(workoutLogs.map(l => l.exerciseId));
+            const sortedCatalog = [...EXERCISES_CATALOG].sort((a, b) => {
+                const aHas = loggedIds.has(a.id) ? 0 : 1;
+                const bHas = loggedIds.has(b.id) ? 0 : 1;
+                if (aHas !== bHas) return aHas - bHas;
+                return a.nombre.localeCompare(b.nombre);
+            });
+
+            exSelect.innerHTML = sortedCatalog.map(e => {
+                const mark = loggedIds.has(e.id) ? "● " : "";
+                return `<option value="${e.id}">${mark}${e.nombre} (${e.grupo_muscular})</option>`;
+            }).join("");
+
+            if (prevVal && sortedCatalog.some(e => e.id === prevVal)) {
+                exSelect.value = prevVal;
+            } else if (sortedCatalog.length > 0) {
+                exSelect.value = sortedCatalog[0].id;
+            }
+
+            renderProgressChart();
+            lucide.createIcons();
+        }
+
+        function autoSelectColdMuscles(refreshUI = true) {
+            const recovery = getMuscleRecoveryStats();
+            // Ordenar por mayor cantidad de días descansados y tomar los 2 grupos principales más fríos
+            const sorted = [...recovery].sort((a, b) => b.daysAgo - a.daysAgo);
+            smartTargetMuscles = sorted.slice(0, 2).map(r => r.muscle);
+            if (refreshUI) {
+                renderStatsView();
+                showToast(`Seleccionados: ${smartTargetMuscles.join(" + ")}`);
+            }
+        }
+
+        function toggleSmartMuscle(muscle) {
+            if (smartTargetMuscles.includes(muscle)) {
+                smartTargetMuscles = smartTargetMuscles.filter(m => m !== muscle);
+            } else {
+                smartTargetMuscles.push(muscle);
+            }
+            renderStatsView();
+        }
+
+        function renderSmartMuscleChips() {
+            const container = document.getElementById("smartRoutineMuscleChips");
+            container.innerHTML = HEATMAP_MUSCLES.map(m => {
+                const active = smartTargetMuscles.includes(m);
+                return `<button type="button" onclick="toggleSmartMuscle('${m}')" class="text-[11px] px-2.5 py-1 rounded-full border transition ${active ? 'bg-emerald-500 text-slate-950 font-bold border-emerald-400' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'}">${m}</button>`;
+            }).join("");
+        }
+
+        function setSmartCount(count, refresh = true) {
+            smartExerciseCount = count;
+            [4, 6, 8].forEach(c => {
+                const btn = document.getElementById(`smartCnt-${c}`);
+                if (!btn) return;
+                btn.className = c === count
+                    ? "smart-cnt-btn px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-emerald-500 text-slate-950 transition"
+                    : "smart-cnt-btn px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-slate-900 text-slate-400 hover:text-white transition";
+            });
+            if (refresh && smartGeneratedIds.length > 0) {
+                generateSmartRoutine();
+            }
+        }
+
+        function generateSmartRoutine() {
+            if (smartTargetMuscles.length === 0) {
+                return showToast("Selecciona al menos un grupo muscular");
+            }
+
+            const tierWeight = { S: 1, A: 2, B: 3, C: 4, D: 5 };
+            // Obtener los últimos ejercicios realizados por cada músculo para variar estímulos
+            const recentExIds = new Set(
+                [...workoutLogs]
+                    .sort((a, b) => b.date.localeCompare(a.date))
+                    .slice(0, 12)
+                    .map(l => l.exerciseId)
+            );
+
+            // Construir pools ordenados por Tier (solo S, A y B) y variedad de patrón por cada músculo elegido
+            const poolsByMuscle = {};
+            smartTargetMuscles.forEach(muscle => {
+                const candidates = EXERCISES_CATALOG.filter(e =>
+                    e.grupo_muscular === muscle && ["S", "A", "B"].includes(e.tier || "A")
+                );
+
+                // Ordenar: 1) Tier S/A/B, 2) No usado en las últimas sesiones, 3) Ligero factor aleatorio para variedad
+                candidates.sort((a, b) => {
+                    const tDiff = (tierWeight[a.tier || "A"] || 3) - (tierWeight[b.tier || "A"] || 3);
+                    if (tDiff !== 0) return tDiff;
+                    const aRec = recentExIds.has(a.id) ? 1 : 0;
+                    const bRec = recentExIds.has(b.id) ? 1 : 0;
+                    if (aRec !== bRec) return aRec - bRec;
+                    return Math.random() - 0.5;
+                });
+
+                // Priorizar patrones distintos dentro del mismo grupo muscular
+                const distinctPatternList = [];
+                const remainderList = [];
+                const seenPatterns = new Set();
+                candidates.forEach(ex => {
+                    const pat = ex.patron || ex.nombre;
+                    if (!seenPatterns.has(pat)) {
+                        seenPatterns.add(pat);
+                        distinctPatternList.push(ex);
+                    } else {
+                        remainderList.push(ex);
+                    }
+                });
+
+                poolsByMuscle[muscle] = [...distinctPatternList, ...remainderList];
+            });
+
+            // Repartir equitativamente (round-robin) entre los grupos seleccionados
+            const selected = [];
+            let round = 0;
+            while (selected.length < smartExerciseCount) {
+                let addedInRound = false;
+                for (const muscle of smartTargetMuscles) {
+                    if (selected.length >= smartExerciseCount) break;
+                    const pool = poolsByMuscle[muscle];
+                    if (pool && pool[round]) {
+                        selected.push(pool[round].id);
+                        addedInRound = true;
+                    }
+                }
+                if (!addedInRound) break;
+                round++;
+            }
+
+            smartGeneratedIds = selected;
+            const listEl = document.getElementById("smartRoutineExercisesList");
+            listEl.innerHTML = smartGeneratedIds.map((id, idx) => {
+                const ex = EXERCISES_CATALOG.find(e => e.id === id);
+                if (!ex) return "";
+                return `
+                <div class="flex items-center justify-between gap-2 bg-slate-950/90 border border-slate-800 rounded-xl px-3 py-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="font-mono text-[11px] font-bold text-slate-500">${idx + 1}.</span>
+                        ${getTierBadgeHTML(ex.tier)}
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold text-white truncate">${ex.nombre}</p>
+                            <p class="text-[10px] text-slate-400 truncate">${ex.grupo_muscular} • ${ex.patron || ex.equipo}</p>
+                        </div>
+                    </div>
+                </div>`;
+            }).join("");
+
+            document.getElementById("smartRoutineResult").classList.remove("hidden");
+            lucide.createIcons();
+        }
+
+        function applySmartRoutineToTrain(savePermanent) {
+            if (smartGeneratedIds.length === 0) return;
+
+            if (savePermanent) {
+                const label = `Sugerida: ${smartTargetMuscles.join(" & ")}`;
+                const newRut = {
+                    id: "rut_" + Date.now(),
+                    nombre: label,
+                    ejercicios: [...smartGeneratedIds]
+                };
+                routines.push(newRut);
+                activeRoutineId = newRut.id;
+                localStorage.setItem(STORAGE_KEYS.ROUTINES, JSON.stringify(routines));
+                localStorage.setItem(STORAGE_KEYS.ACTIVE_ROUTINE, activeRoutineId);
+                renderActiveRoutineSelect();
+                syncSessionExercises();
+                showToast("Rutina guardada y cargada en Entrenar");
+            } else {
+                sessionExercises = [...smartGeneratedIds];
+                showToast("Sesión cargada en Entrenar");
+            }
+            switchTab("train");
+        }
+
+        function renderProgressChart() {
+            const exId = document.getElementById("statsExerciseSelect").value;
+            const scope = document.getElementById("statsGymScope").value;
+            const metric = document.getElementById("statsMetricSelect").value;
+            const ex = EXERCISES_CATALOG.find(e => e.id === exId);
+            const kpiRow = document.getElementById("statsKpiRow");
+            const chartBox = document.getElementById("progressChartContainer");
+
+            if (!ex) return;
+
+            const isCardio = ex.tipo_registro === "tiempo_distancia";
+            const isBW = isBodyweightExercise(ex);
+
+            const logs = workoutLogs
+                .filter(l => l.exerciseId === exId && (scope === "all" || l.gymId === activeGymId))
+                .sort((a, b) => a.date.localeCompare(b.date));
+
+            if (logs.length === 0) {
+                kpiRow.innerHTML = "";
+                chartBox.innerHTML = `<p class="text-xs text-slate-500 text-center py-8">Sin registros para este ejercicio en la sede seleccionada.</p>`;
+                return;
+            }
+
+            const points = logs.map(l => {
+                let val = 0;
+                if (metric === "maxWeight") {
+                    val = (isCardio || isBW)
+                        ? Math.max(...l.sets.map(s => Number(s.r) || 0))
+                        : Math.max(...l.sets.map(s => Number(s.p) || 0));
+                } else if (metric === "volume") {
+                    val = (isCardio || isBW)
+                        ? l.sets.reduce((acc, s) => acc + (Number(s.r) || 0), 0)
+                        : l.sets.reduce((acc, s) => acc + ((Number(s.p) || 0) * (Number(s.r) || 0)), 0);
+                } else {
+                    val = l.sets.reduce((acc, s) => acc + (Number(s.r) || 0), 0);
+                }
+                return { date: l.date, value: Math.round(val * 10) / 10 };
+            });
+
+            const unit = isCardio
+                ? (metric === "maxWeight" ? "km" : "km")
+                : (isBW || metric === "totalReps" ? "reps" : "kg");
+
+            const values = points.map(p => p.value);
+            const bestVal = Math.max(...values);
+            const lastVal = values[values.length - 1];
+            const firstVal = values[0];
+            const delta = Math.round((lastVal - firstVal) * 10) / 10;
+            const deltaSign = delta > 0 ? "+" : "";
+
+            kpiRow.innerHTML = `
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-center">
+                    <span class="block text-[10px] text-slate-500 uppercase font-semibold">Récord</span>
+                    <span class="font-mono text-sm font-extrabold text-amber-400">${bestVal} <span class="text-[10px]">${unit}</span></span>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-center">
+                    <span class="block text-[10px] text-slate-500 uppercase font-semibold">Último</span>
+                    <span class="font-mono text-sm font-extrabold text-white">${lastVal} <span class="text-[10px]">${unit}</span></span>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-center">
+                    <span class="block text-[10px] text-slate-500 uppercase font-semibold">Evolución</span>
+                    <span class="font-mono text-sm font-extrabold ${delta >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${deltaSign}${delta} <span class="text-[10px]">${unit}</span></span>
+                </div>
+            `;
+
+            // Construcción del Gráfico SVG Responsivo
+            const W = 320;
+            const H = 165;
+            const padL = 34;
+            const padR = 14;
+            const padT = 18;
+            const padB = 26;
+            const plotW = W - padL - padR;
+            const plotH = H - padT - padB;
+
+            const minV = Math.min(...values);
+            const maxV = Math.max(...values);
+            const span = maxV === minV ? (maxV || 10) * 0.2 : (maxV - minV) * 0.2;
+            const yMin = Math.max(0, minV - span);
+            const yMax = maxV + span;
+
+            const coords = points.map((pt, idx) => {
+                const x = points.length === 1
+                    ? padL + plotW / 2
+                    : padL + (idx / (points.length - 1)) * plotW;
+                const y = padT + plotH - ((pt.value - yMin) / (yMax - yMin || 1)) * plotH;
+                return { x, y, ...pt };
+            });
+
+            const polyPoints = coords.map(c => `${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ");
+            const areaPoints = coords.length > 1
+                ? `${coords[0].x.toFixed(1)},${padT + plotH} ${polyPoints} ${coords[coords.length - 1].x.toFixed(1)},${padT + plotH}`
+                : "";
+
+            const midV = Math.round(((yMin + yMax) / 2) * 10) / 10;
+            const topLabel = Math.round(yMax * 10) / 10;
+            const botLabel = Math.round(yMin * 10) / 10;
+
+            chartBox.innerHTML = `
+                <svg viewBox="0 0 ${W} ${H}" class="w-full h-auto overflow-visible">
+                    <defs>
+                        <linearGradient id="emeraldAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#10b981" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Líneas guía horizontales -->
+                    <line x1="${padL}" y1="${padT}" x2="${W - padR}" y2="${padT}" stroke="#1e293b" stroke-dasharray="3 3" />
+                    <line x1="${padL}" y1="${padT + plotH / 2}" x2="${W - padR}" y2="${padT + plotH / 2}" stroke="#1e293b" stroke-dasharray="3 3" />
+                    <line x1="${padL}" y1="${padT + plotH}" x2="${W - padR}" y2="${padT + plotH}" stroke="#334155" />
+
+                    <!-- Etiquetas eje Y -->
+                    <text x="${padL - 5}" y="${padT + 3}" text-anchor="end" fill="#64748b" font-size="9" font-family="JetBrains Mono">${topLabel}</text>
+                    <text x="${padL - 5}" y="${padT + plotH / 2 + 3}" text-anchor="end" fill="#64748b" font-size="9" font-family="JetBrains Mono">${midV}</text>
+                    <text x="${padL - 5}" y="${padT + plotH + 3}" text-anchor="end" fill="#64748b" font-size="9" font-family="JetBrains Mono">${botLabel}</text>
+
+                    <!-- Área y Línea -->
+                    ${coords.length > 1 ? `<polygon points="${areaPoints}" fill="url(#emeraldAreaGrad)" />` : ''}
+                    ${coords.length > 1 ? `<polyline fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${polyPoints}" />` : ''}
+
+                    <!-- Puntos y Valores -->
+                    ${coords.map((c, idx) => {
+                        const showLabel = coords.length <= 8 || idx === 0 || idx === coords.length - 1 || c.value === bestVal;
+                        return `
+                        <circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="4" fill="#020617" stroke="#10b981" stroke-width="2.2" />
+                        ${showLabel ? `<text x="${c.x.toFixed(1)}" y="${(c.y - 8).toFixed(1)}" text-anchor="middle" fill="#e2e8f0" font-size="9" font-weight="700" font-family="JetBrains Mono">${c.value}</text>` : ''}
+                        ${(idx === 0 || idx === coords.length - 1) ? `<text x="${c.x.toFixed(1)}" y="${H - 5}" text-anchor="${idx === 0 ? 'start' : 'end'}" fill="#64748b" font-size="9" font-family="JetBrains Mono">${c.date.slice(5)}</text>` : ''}
+                        `;
+                    }).join("")}
+                </svg>
+                <p class="text-[10px] text-slate-500 text-center mt-1">${points.length} sesión${points.length === 1 ? '' : 'es'} registrada${points.length === 1 ? '' : 's'}</p>
+            `;
+        }
+
+        // ==========================================
+        // 11. BACKUP (EXPORTAR / IMPORTAR) Y TOAST
+        // ==========================================
+        // 10. BACKUP (EXPORTAR / IMPORTAR) Y TOAST
+        // ==========================================
+        function exportBackup() {
+            const backup = {
+                version: 2,
+                exportedAt: new Date().toISOString(),
+                catalog: EXERCISES_CATALOG,
+                gyms: gyms,
+                activeGymId: activeGymId,
+                routines: routines,
+                activeRoutineId: activeRoutineId,
+                logs: workoutLogs
+            };
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `liftnote-backup-${getTodayISO()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("Backup descargado correctamente");
+        }
+
+        function importBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data.logs || !data.routines || !data.gyms) {
+                        return showToast("Archivo de backup inválido");
+                    }
+                    openConfirmModal("Importar Backup", "Esto reemplazará tu historial, rutinas y sedes actuales por los del archivo. ¿Continuar?", () => {
+                        if (data.catalog) EXERCISES_CATALOG = data.catalog;
+                        gyms = data.gyms;
+                        activeGymId = data.activeGymId || gyms[0].id;
+                        routines = data.routines;
+                        activeRoutineId = data.activeRoutineId || routines[0].id;
+                        workoutLogs = data.logs;
+
+                        localStorage.setItem(STORAGE_KEYS.CATALOG, JSON.stringify(EXERCISES_CATALOG));
+                        localStorage.setItem(STORAGE_KEYS.GYMS, JSON.stringify(gyms));
+                        localStorage.setItem(STORAGE_KEYS.ACTIVE_GYM, activeGymId);
+                        localStorage.setItem(STORAGE_KEYS.ROUTINES, JSON.stringify(routines));
+                        localStorage.setItem(STORAGE_KEYS.ACTIVE_ROUTINE, activeRoutineId);
+                        localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(workoutLogs));
+
+                        renderGymSelect();
+                        renderActiveRoutineSelect();
+                        syncSessionExercises();
+                        renderHistoryView();
+                        showToast("Backup restaurado con éxito");
+                    });
+                } catch (err) {
+                    showToast("Error al leer el archivo JSON");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = "";
+        }
+
+        let toastTimer;
+        function showToast(msg) {
+            const t = document.getElementById("toast");
+            document.getElementById("toastMessage").textContent = msg;
+            t.classList.remove("opacity-0", "translate-y-4");
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.add("opacity-0", "translate-y-4"), 2200);
+        }
+
+        window.addEventListener("DOMContentLoaded", initApp);
+    </script>
+</body>
+</html>
