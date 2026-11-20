@@ -968,6 +968,16 @@
                 const savedLogs = localStorage.getItem(STORAGE_KEYS.LOGS);
                 if (savedLogs) {
                     workoutLogs = JSON.parse(savedLogs);
+                    // Limpiar duplicados previos del mismo día/sede/ejercicio conservando el último guardado
+                    const dedupMap = new Map();
+                    workoutLogs.forEach(l => {
+                        const key = `${l.date}|${l.gymId}|${l.exerciseId}`;
+                        dedupMap.set(key, l);
+                    });
+                    if (dedupMap.size !== workoutLogs.length) {
+                        workoutLogs = Array.from(dedupMap.values());
+                        localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(workoutLogs));
+                    }
                 } else {
                     // Dato de ejemplo inicial para el Gimnasio Principal
                     workoutLogs = [{
@@ -993,8 +1003,9 @@
 
         function getLastRecordForGym(exerciseId, gymId) {
             const matching = workoutLogs
+                .map((l, idx) => ({ ...l, _idx: idx }))
                 .filter(l => l.exerciseId === exerciseId && l.gymId === gymId)
-                .sort((a, b) => b.date.localeCompare(a.date));
+                .sort((a, b) => b.date.localeCompare(a.date) || b._idx - a._idx);
             return matching.length > 0 ? matching[0] : null;
         }
 
@@ -1585,20 +1596,34 @@
             const date = document.getElementById("workoutDateInput").value || getTodayISO();
             const note = document.getElementById("workoutNoteInput").value.trim();
 
-            const newLog = {
-                id: "log_" + Date.now(),
-                date: date,
-                gymId: activeGymId,
-                exerciseId: activeWorkoutExId,
-                sets: currentSets.map(s => ({ p: s.p, r: s.r })),
-                ...(note ? { note } : {})
-            };
+            const existingIdx = workoutLogs.findIndex(
+                l => l.date === date && l.gymId === activeGymId && l.exerciseId === activeWorkoutExId
+            );
 
-            workoutLogs.push(newLog);
+            if (existingIdx !== -1) {
+                workoutLogs[existingIdx] = {
+                    ...workoutLogs[existingIdx],
+                    sets: currentSets.map(s => ({ p: s.p, r: s.r })),
+                    note: note || undefined
+                };
+                if (!note) delete workoutLogs[existingIdx].note;
+                showToast("Registro del día actualizado");
+            } else {
+                const newLog = {
+                    id: "log_" + Date.now(),
+                    date: date,
+                    gymId: activeGymId,
+                    exerciseId: activeWorkoutExId,
+                    sets: currentSets.map(s => ({ p: s.p, r: s.r })),
+                    ...(note ? { note } : {})
+                };
+                workoutLogs.push(newLog);
+                showToast("Entrenamiento guardado con éxito");
+            }
+
             localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(workoutLogs));
             closeWorkoutModal();
             renderTrainView();
-            showToast("Entrenamiento guardado con éxito");
         }
 
         // ==========================================
@@ -1876,23 +1901,57 @@
             `).join("");
             lucide.createIcons();
         }
-        function getTierBadgeHTML(tier) {
-            const t = (tier || "A").toUpperCase();
-            const styles = {
-                S: "bg-amber-500/20 text-amber-300 border-amber-400/40",
-                A: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-                B: "bg-sky-500/15 text-sky-400 border-sky-500/30",
-                C: "bg-slate-700/60 text-slate-300 border-slate-600/50",
-                D: "bg-rose-500/15 text-rose-400 border-rose-500/30"
+
+        function addEditHistSet() {
+            const exId = document.getElementById("editHistExercise").value;
+            const ex = EXERCISES_CATALOG.find(e => e.id === exId);
+            const isBW = isBodyweightExercise(ex);
+            const last = editHistSets.length > 0 ? editHistSets[editHistSets.length - 1] : { p: isBW ? 0 : 20, r: 10 };
+            editHistSets.push({ p: isBW ? 0 : last.p, r: last.r });
+            renderEditHistSets();
+        }
+
+        function saveEditedHistory() {
+            if (!editingLogId || editHistSets.length === 0) return showToast("Agrega al menos una serie");
+            const idx = workoutLogs.findIndex(l => l.id === editingLogId);
+            if (idx === -1) return;
+
+            const newDate = document.getElementById("editHistDate").value || workoutLogs[idx].date;
+            const newGymId = document.getElementById("editHistGym").value;
+            const newExId = document.getElementById("editHistExercise").value;
+            const newNote = document.getElementById("editHistNote").value.trim();
+
+            workoutLogs[idx] = {
+                ...workoutLogs[idx],
+                date: newDate,
+                gymId: newGymId,
+                exerciseId: newExId,
+                sets: editHistSets.map(s => ({ p: s.p, r: s.r })),
+                ...(newNote ? { note: newNote } : {})
             };
-            const labels = {
-                S: "★ S",
-                A: "A",
-                B: "B",
-                C: "C",
-                D: "⚠ D"
-            };
-            return `<span class="text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded border ${styles[t] || styles.A}" title="Calificación de eficacia: Tier ${t}">${labels[t] || t}</span>`;
+            if (!newNote) delete workoutLogs[idx].note;
+
+            localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(workoutLogs));
+            closeEditHistoryModal();
+            renderHistoryView();
+            if (currentTab === "train") renderTrainView();
+            showToast("Registro actualizado");
+        }
+
+        function confirmDeleteHistory(logId) {
+            const log = workoutLogs.find(l => l.id === logId);
+            const ex = log ? EXERCISES_CATALOG.find(e => e.id === log.exerciseId) : null;
+            openConfirmModal(
+                "Eliminar Registro",
+                `¿Eliminar el registro de "${ex ? ex.nombre : 'este ejercicio'}" (${log ? log.date : ''})?`,
+                () => {
+                    workoutLogs = workoutLogs.filter(l => l.id !== logId);
+                    localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(workoutLogs));
+                    renderHistoryView();
+                    if (currentTab === "train") renderTrainView();
+                    showToast("Registro eliminado");
+                }
+            );
         }
 
         function renderCatalogView() {
@@ -2069,6 +2128,19 @@
         function setCatalogMuscle(m) {
             catalogMuscleFilter = m;
             renderCatalogView();
+        }
+
+        function getTierBadgeHTML(tier) {
+            const t = (tier || "A").toUpperCase();
+            const styles = {
+                S: "bg-amber-500/20 text-amber-300 border-amber-500/40",
+                A: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+                B: "bg-sky-500/15 text-sky-300 border-sky-500/30",
+                C: "bg-slate-800 text-slate-400 border-slate-700",
+                D: "bg-rose-500/15 text-rose-400 border-rose-500/30"
+            };
+            const label = t === "S" ? "★ S" : (t === "D" ? "⚠ D" : t);
+            return `<span class="text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded border shrink-0 ${styles[t] || styles.A}">${label}</span>`;
         }
 
         // ==========================================
