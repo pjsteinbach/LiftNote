@@ -66,24 +66,24 @@
                         </select>
                         <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"></i>
                     </div>
-                    <button onclick="openGymModal()" class="p-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white active:scale-95 transition" title="Gestionar Gimnasios">
-                        <i data-lucide="map-pin" class="w-4 h-4"></i>
+                    <button onclick="openGymModal()" class="p-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white active:scale-95 transition" title="Sedes y Respaldo de Datos">
+                        <i data-lucide="settings-2" class="w-4 h-4"></i>
                     </button>
                 </div>
             </div>
         </header>
 
-        <!-- ==================== MODAL: GESTIÓN DE GIMNASIOS / SEDES ==================== -->
+        <!-- ==================== MODAL: SEDES Y RESPALDO DE DATOS ==================== -->
         <div id="gymModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm">
-            <div class="w-full max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl animate-slide-up max-h-[85vh] flex flex-col">
+            <div class="w-full max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl animate-slide-up max-h-[88vh] flex flex-col">
                 <div class="px-5 pt-4 pb-3 border-b border-slate-800 flex items-center justify-between">
                     <div>
-                        <h3 class="text-base font-bold text-white">Gestionar Gimnasios y Sedes</h3>
-                        <p class="text-xs text-slate-400">Agrega o elimina tus lugares de entrenamiento</p>
+                        <h3 class="text-base font-bold text-white">Sedes y Respaldo</h3>
+                        <p class="text-xs text-slate-400">Administra tus gimnasios y copia de seguridad</p>
                     </div>
                     <button onclick="closeGymModal()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
                 </div>
-                <div class="p-4 space-y-3.5 overflow-y-auto flex-1">
+                <div class="p-4 space-y-4 overflow-y-auto flex-1">
                     <div>
                         <label class="text-xs font-semibold text-slate-400 block mb-1">Nueva Sede / Gimnasio</label>
                         <div class="flex gap-2">
@@ -98,6 +98,22 @@
                         <div id="gymManageList" class="space-y-2">
                             <!-- Lista por JS -->
                         </div>
+                    </div>
+                    <!-- Bloque de Copia de Seguridad (Backup JSON) -->
+                    <div class="pt-3 border-t border-slate-800/80 space-y-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Copia de Seguridad (Todo el sistema)</span>
+                        <p class="text-[11px] text-slate-500">Respalda o restaura tu catálogo completo, sedes, rutinas e historial en formato JSON.</p>
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                            <button type="button" onclick="exportBackup()" class="py-2.5 px-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 hover:bg-emerald-500/25 text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                Exportar Backup
+                            </button>
+                            <button type="button" onclick="document.getElementById('importBackupInput').click()" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs flex items-center justify-center gap-1.5 transition">
+                                <i data-lucide="upload" class="w-4 h-4"></i>
+                                Importar Backup
+                            </button>
+                        </div>
+                        <input type="file" id="importBackupInput" accept=".json" class="hidden" onchange="importBackup(event)">
                     </div>
                 </div>
                 <div class="p-4 border-t border-slate-800 flex justify-end">
@@ -215,28 +231,9 @@
                         <i data-lucide="calendar" class="w-4 h-4"></i>
                         <span id="dateFilterDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-400"></span>
                     </button>
-                    <!-- Menú de 3 puntos para Backup y CSV -->
-                    <div class="relative">
-                        <button onclick="toggleHistoryMenu(event)" class="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition" title="Más opciones">
-                            <i data-lucide="more-vertical" class="w-4 h-4"></i>
-                        </button>
-                        <div id="historyMoreMenu" class="hidden absolute right-0 mt-1.5 w-52 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl py-1.5 z-40">
-                            <button onclick="closeHistoryMenu(); exportFilteredCSV()" class="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-sky-400 hover:bg-slate-800 flex items-center gap-2">
-                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-                                Exportar CSV (vista actual)
-                            </button>
-                            <div class="my-1 border-t border-slate-800"></div>
-                            <button onclick="closeHistoryMenu(); exportBackup()" class="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-emerald-400 hover:bg-slate-800 flex items-center gap-2">
-                                <i data-lucide="download" class="w-4 h-4"></i>
-                                Exportar Backup
-                            </button>
-                            <button onclick="closeHistoryMenu(); document.getElementById('importBackupInput').click()" class="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-slate-200 hover:bg-slate-800 flex items-center gap-2">
-                                <i data-lucide="upload" class="w-4 h-4"></i>
-                                Importar Backup
-                            </button>
-                        </div>
-                    </div>
-                    <input type="file" id="importBackupInput" accept=".json" class="hidden" onchange="importBackup(event)">
+                    <button onclick="exportFilteredCSV()" class="p-2 rounded-xl bg-slate-900 border border-slate-800 text-sky-400 hover:bg-slate-800 transition" title="Exportar CSV (vista actual)">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                    </button>
                 </div>
             </div>
 
@@ -368,18 +365,23 @@
                             <i data-lucide="flame" class="w-4 h-4 text-rose-400"></i>
                             Mapa de Calor Muscular
                         </h3>
-                        <p class="text-[11px] text-slate-400 mt-0.5">Toca un grupo para seleccionarlo en el generador</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5" id="heatmapSubtitle">Vista general por grupo muscular</p>
                     </div>
+                    <!-- Toggle Simple / Detallado -->
+                    <button type="button" onclick="toggleHeatmapDetail()" id="heatmapDetailToggleBtn" class="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-700/80 text-[11px] font-semibold text-slate-300 hover:text-white transition">
+                        <span id="heatmapToggleIndicator" class="w-2 h-2 rounded-full bg-slate-500"></span>
+                        <span id="heatmapToggleLabel">Detallado</span>
+                    </button>
                 </div>
 
                 <!-- Leyenda Térmica -->
                 <div class="flex items-center justify-between text-[10px] font-semibold bg-slate-950/80 border border-slate-800/80 rounded-xl px-2.5 py-1.5">
-                    <span class="flex items-center gap-1 text-rose-400"><span class="w-2 h-2 rounded-full bg-rose-500"></span>0-1d Fatiga</span>
-                    <span class="flex items-center gap-1 text-amber-400"><span class="w-2 h-2 rounded-full bg-amber-500"></span>2-3d Recuperando</span>
-                    <span class="flex items-center gap-1 text-cyan-400"><span class="w-2 h-2 rounded-full bg-cyan-400"></span>4d+ Listo</span>
+                    <span class="flex items-center gap-1 text-rose-400"><span class="w-2 h-2 rounded-full bg-rose-500"></span>Fatiga Alta</span>
+                    <span class="flex items-center gap-1 text-amber-400"><span class="w-2 h-2 rounded-full bg-amber-500"></span>Parcial / Recup.</span>
+                    <span class="flex items-center gap-1 text-cyan-400"><span class="w-2 h-2 rounded-full bg-cyan-400"></span>Listo 100%</span>
                 </div>
 
-                <!-- Grilla de Grupos Musculares -->
+                <!-- Grilla de Grupos / Subgrupos Musculares -->
                 <div id="muscleHeatmapGrid" class="grid grid-cols-2 gap-2">
                     <!-- Tarjetas térmicas por JS -->
                 </div>
@@ -711,6 +713,16 @@
                     <input type="text" id="catNewPattern" list="patternSuggestionsList" placeholder="Ej: Tracción Horizontal / Remo" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500">
                     <datalist id="patternSuggestionsList"></datalist>
                 </div>
+                <div class="space-y-2 pt-1">
+                    <div>
+                        <span class="text-[11px] font-semibold text-slate-400 block mb-1">Músculos Principales (100% estímulo)</span>
+                        <div id="catPrimaryMusclesChips" class="flex flex-wrap gap-1"></div>
+                    </div>
+                    <div>
+                        <span class="text-[11px] font-semibold text-slate-400 block mb-1">Músculos Secundarios (50% estímulo)</span>
+                        <div id="catSecondaryMusclesChips" class="flex flex-wrap gap-1"></div>
+                    </div>
+                </div>
             </div>
             <div class="p-4 border-t border-slate-800 flex gap-3">
                 <button onclick="closeCatalogEditor()" class="w-1/3 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-semibold text-sm">Cancelar</button>
@@ -748,121 +760,158 @@
 
     <script>
         // ==========================================
-        // 1. CATÁLOGO NORMALIZADO Y CALIFICADO (CRITERIO BIOMECÁNICO ATHLEAN-X)
+        // 1. ANATOMÍA GRANULAR Y CATÁLOGO CALIFICADO
         // ==========================================
+        const SUB_MUSCLES_META = [
+            { id: "dorsales", label: "Dorsales", parent: "Espalda" },
+            { id: "trapecio", label: "Trapecio / Esp. Alta", parent: "Espalda" },
+            { id: "lumbar", label: "Zona Lumbar", parent: "Espalda" },
+            { id: "pecho", label: "Pecho", parent: "Pecho" },
+            { id: "cuadriceps", label: "Cuádriceps", parent: "Piernas" },
+            { id: "isquios", label: "Isquiotibiales", parent: "Piernas" },
+            { id: "gluteos", label: "Glúteos", parent: "Piernas" },
+            { id: "gemelos", label: "Gemelos", parent: "Piernas" },
+            { id: "delt_ant_med", label: "Delt. Anterior / Medio", parent: "Hombros" },
+            { id: "delt_post", label: "Delt. Posterior", parent: "Hombros" },
+            { id: "biceps", label: "Bíceps", parent: "Bíceps" },
+            { id: "triceps", label: "Tríceps", parent: "Tríceps" },
+            { id: "abdominales", label: "Abdominales / Core", parent: "Abdominales" },
+            { id: "antebrazos", label: "Antebrazos", parent: "Antebrazos" }
+        ];
+
+        const PARENT_MUSCLES = ["Espalda", "Pecho", "Piernas", "Hombros", "Bíceps", "Tríceps", "Abdominales", "Antebrazos"];
+
         const DEFAULT_CATALOG = [
             // ESPALDA & TRAPECIOS
-            { id: "esp_01", nombre: "Dominadas con Peso", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Peso Corporal + Lastre", agarre: "Prono", variante: "Lastrado", tipo_registro: "peso_reps", tier: "S" },
-            { id: "esp_02", nombre: "Remo con Barra", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Barra", agarre: "Prono", variante: "Inclinado", tipo_registro: "peso_reps", tier: "S" },
-            { id: "esp_03", nombre: "Remo Apoyado en Pecho", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Máquina / Banco", agarre: "Neutro", variante: "Con Apoyo", tipo_registro: "peso_reps", tier: "S" },
-            { id: "esp_04", nombre: "Dominada Agarre Prono", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Peso Corporal", agarre: "Prono", variante: "Ancho", tipo_registro: "peso_reps", tier: "S" },
-            { id: "esp_05", nombre: "Dominada Agarre Supino", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Peso Corporal", agarre: "Supino", variante: "Cerrado", tipo_registro: "peso_reps", tier: "A" },
-            { id: "esp_06", nombre: "Dominada Agarre Neutro", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Peso Corporal", agarre: "Neutro", variante: "Estrecho", tipo_registro: "peso_reps", tier: "A" },
-            { id: "esp_07", nombre: "Remo Meadows", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Barra Landmine", agarre: "Prono", variante: "Unilateral", tipo_registro: "peso_reps", tier: "A" },
-            { id: "esp_08", nombre: "Remo en Polea Alta Unilateral", grupo_muscular: "Espalda", patron: "Tracción Vertical / Remo", equipo: "Polea", agarre: "Neutro", variante: "Unilateral", tipo_registro: "peso_reps", tier: "A" },
-            { id: "esp_09", nombre: "Jalón al Pecho", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Polea", agarre: "Prono", variante: "Barra Larga", tipo_registro: "peso_reps", tier: "A" },
-            { id: "esp_10", nombre: "Dorsalera (Pull Down)", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Máquina", agarre: "Prono", variante: "Con Discos", tipo_registro: "peso_reps", tier: "A" },
-            { id: "esp_11", nombre: "Remo Alto", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Máquina Dorsalera", agarre: "Neutro", variante: "Estrecho", tipo_registro: "peso_reps", tier: "A" },
-            { id: "esp_12", nombre: "Remo en Polea Baja", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Polea", agarre: "Neutro", variante: "Triángulo", tipo_registro: "peso_reps", tier: "B" },
-            { id: "esp_13", nombre: "Remo Trípode con Mancuerna", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Mancuernas", agarre: "Neutro", variante: "Unilateral", tipo_registro: "peso_reps", tier: "B" },
-            { id: "esp_14", nombre: "Pullover en Polea Alta", grupo_muscular: "Espalda", patron: "Extensión Hombro / Pullover", equipo: "Polea", agarre: "Prono", variante: "Barra Recta", tipo_registro: "peso_reps", tier: "B" },
-            { id: "esp_15", nombre: "Remo Hammer", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Máquina Hammer", agarre: "Neutro", variante: "Bilateral", tipo_registro: "peso_reps", tier: "B" },
-            { id: "esp_16", nombre: "Remo Pendlay", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Barra", agarre: "Prono", variante: "Explosivo", tipo_registro: "peso_reps", tier: "C" },
-            { id: "esp_17", nombre: "Lumbar en Banqueta", grupo_muscular: "Espalda", patron: "Extensión Lumbar", equipo: "Peso Corporal", agarre: null, variante: "Hiperextensión", tipo_registro: "peso_reps", tier: "B" },
-            { id: "esp_18", nombre: "Jalón Tras Nuca", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Polea", agarre: "Prono", variante: "Tras Nuca", tipo_registro: "peso_reps", tier: "D" },
+            { id: "esp_01", nombre: "Dominadas con Peso", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Peso Corporal + Lastre", agarre: "Prono", variante: "Lastrado", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["dorsales"], musculos_secundarios: ["biceps", "trapecio"] },
+            { id: "esp_02", nombre: "Remo con Barra", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Barra", agarre: "Prono", variante: "Inclinado", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["dorsales", "trapecio"], musculos_secundarios: ["biceps", "lumbar", "delt_post"] },
+            { id: "esp_03", nombre: "Remo Apoyado en Pecho", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Máquina / Banco", agarre: "Neutro", variante: "Con Apoyo", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["dorsales", "trapecio"], musculos_secundarios: ["biceps", "delt_post"] },
+            { id: "esp_04", nombre: "Dominada Agarre Prono", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Peso Corporal", agarre: "Prono", variante: "Ancho", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["dorsales"], musculos_secundarios: ["biceps", "trapecio"] },
+            { id: "esp_05", nombre: "Dominada Agarre Supino", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Peso Corporal", agarre: "Supino", variante: "Cerrado", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["dorsales", "biceps"], musculos_secundarios: ["trapecio"] },
+            { id: "esp_06", nombre: "Dominada Agarre Neutro", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Peso Corporal", agarre: "Neutro", variante: "Estrecho", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["dorsales"], musculos_secundarios: ["biceps", "antebrazos"] },
+            { id: "esp_07", nombre: "Remo Meadows", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Barra Landmine", agarre: "Prono", variante: "Unilateral", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["dorsales", "delt_post"], musculos_secundarios: ["trapecio", "biceps"] },
+            { id: "esp_08", nombre: "Remo en Polea Alta Unilateral", grupo_muscular: "Espalda", patron: "Tracción Vertical / Remo", equipo: "Polea", agarre: "Neutro", variante: "Unilateral", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["dorsales"], musculos_secundarios: ["biceps"] },
+            { id: "esp_09", nombre: "Jalón al Pecho", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Polea", agarre: "Prono", variante: "Barra Larga", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["dorsales"], musculos_secundarios: ["biceps", "trapecio"] },
+            { id: "esp_10", nombre: "Dorsalera (Pull Down)", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Máquina", agarre: "Prono", variante: "Con Discos", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["dorsales"], musculos_secundarios: ["biceps"] },
+            { id: "esp_11", nombre: "Remo Alto", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Máquina Dorsalera", agarre: "Neutro", variante: "Estrecho", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["trapecio", "delt_post"], musculos_secundarios: ["dorsales", "biceps"] },
+            { id: "esp_12", nombre: "Remo en Polea Baja", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Polea", agarre: "Neutro", variante: "Triángulo", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["dorsales", "trapecio"], musculos_secundarios: ["biceps"] },
+            { id: "esp_13", nombre: "Remo Trípode con Mancuerna", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Mancuernas", agarre: "Neutro", variante: "Unilateral", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["dorsales"], musculos_secundarios: ["trapecio", "biceps"] },
+            { id: "esp_14", nombre: "Pullover en Polea Alta", grupo_muscular: "Espalda", patron: "Extensión Hombro / Pullover", equipo: "Polea", agarre: "Prono", variante: "Barra Recta", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["dorsales"], musculos_secundarios: ["triceps", "abdominales"] },
+            { id: "esp_15", nombre: "Remo Hammer", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Máquina Hammer", agarre: "Neutro", variante: "Bilateral", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["dorsales", "trapecio"], musculos_secundarios: ["biceps"] },
+            { id: "esp_16", nombre: "Remo Pendlay", grupo_muscular: "Espalda", patron: "Tracción Horizontal / Remo", equipo: "Barra", agarre: "Prono", variante: "Explosivo", tipo_registro: "peso_reps", tier: "C", musculos_principales: ["dorsales", "trapecio"], musculos_secundarios: ["lumbar", "biceps"] },
+            { id: "esp_17", nombre: "Lumbar en Banqueta", grupo_muscular: "Espalda", patron: "Extensión Lumbar", equipo: "Peso Corporal", agarre: null, variante: "Hiperextensión", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["lumbar"], musculos_secundarios: ["gluteos", "isquios"] },
+            { id: "esp_18", nombre: "Jalón Tras Nuca", grupo_muscular: "Espalda", patron: "Tracción Vertical", equipo: "Polea", agarre: "Prono", variante: "Tras Nuca", tipo_registro: "peso_reps", tier: "D", musculos_principales: ["dorsales"], musculos_secundarios: ["biceps"] },
+            { id: "custom_1795112565824", nombre: "Remo inferior individual en polea", grupo_muscular: "Espalda", patron: "Tracción Vertical / Remo", equipo: "Polea", agarre: null, variante: null, tipo_registro: "peso_reps", tier: "A", musculos_principales: ["dorsales"], musculos_secundarios: ["biceps", "trapecio"] },
+            { id: "custom_1795011590553", nombre: "Lumbar en banqueta con peso", grupo_muscular: "Espalda", patron: "Extensión Lumbar", equipo: "Mancuernas", agarre: "Prono", variante: null, tipo_registro: "peso_reps", tier: "B", musculos_principales: ["lumbar"], musculos_secundarios: ["gluteos", "isquios"] },
 
             // PECHO
-            { id: "pec_01", nombre: "Press Plano con Barra", grupo_muscular: "Pecho", patron: "Empuje Horizontal / Press", equipo: "Barra", agarre: "Prono", variante: "Banco Plano", tipo_registro: "peso_reps", tier: "S" },
-            { id: "pec_02", nombre: "Press Plano con Mancuernas", grupo_muscular: "Pecho", patron: "Empuje Horizontal / Press", equipo: "Mancuernas", agarre: "Prono", variante: "Banco Plano", tipo_registro: "peso_reps", tier: "S" },
-            { id: "pec_03", nombre: "Press Inclinado con Mancuernas (30°)", grupo_muscular: "Pecho", patron: "Empuje Inclinado", equipo: "Mancuernas", agarre: "Prono", variante: "30°", tipo_registro: "peso_reps", tier: "S" },
-            { id: "pec_04", nombre: "Press Inclinado con Barra", grupo_muscular: "Pecho", patron: "Empuje Inclinado", equipo: "Barra", agarre: "Prono", variante: "30°", tipo_registro: "peso_reps", tier: "A" },
-            { id: "pec_05", nombre: "Cruce de Poleas (Down-Up)", grupo_muscular: "Pecho", patron: "Aducción / Aperturas", equipo: "Polea", agarre: "Supino", variante: "Inferior a Superior", tipo_registro: "peso_reps", tier: "A" },
-            { id: "pec_06", nombre: "Cruce de Poleas (Up-Down)", grupo_muscular: "Pecho", patron: "Aducción / Aperturas", equipo: "Polea", agarre: "Neutro", variante: "Superior a Inferior", tipo_registro: "peso_reps", tier: "A" },
-            { id: "pec_07", nombre: "Press en Banco Hammer", grupo_muscular: "Pecho", patron: "Empuje Horizontal / Press", equipo: "Máquina Hammer", agarre: "Neutro", variante: "Convergente", tipo_registro: "peso_reps", tier: "A" },
-            { id: "pec_08", nombre: "Fondos en Paralelas (Inclinado Pecho)", grupo_muscular: "Pecho", patron: "Empuje Declinado / Fondos", equipo: "Peso Corporal", agarre: "Neutro", variante: "Torso Inclinado", tipo_registro: "peso_reps", tier: "A" },
-            { id: "pec_09", nombre: "Flexiones en Déficit / Pliométricas", grupo_muscular: "Pecho", patron: "Empuje Horizontal / Press", equipo: "Peso Corporal", agarre: "Prono", variante: "Déficit", tipo_registro: "peso_reps", tier: "B" },
-            { id: "pec_10", nombre: "Press Declinado con Barra", grupo_muscular: "Pecho", patron: "Empuje Declinado", equipo: "Barra", agarre: "Prono", variante: "Declinado", tipo_registro: "peso_reps", tier: "B" },
-            { id: "pec_11", nombre: "Aperturas en Máquina (Peck Deck)", grupo_muscular: "Pecho", patron: "Aducción / Aperturas", equipo: "Máquina", agarre: "Neutro", variante: "Sentado", tipo_registro: "peso_reps", tier: "B" },
-            { id: "pec_12", nombre: "Press de Pecho en Máquina", grupo_muscular: "Pecho", patron: "Empuje Horizontal / Press", equipo: "Máquina", agarre: "Prono", variante: "Sentado", tipo_registro: "peso_reps", tier: "B" },
-            { id: "pec_13", nombre: "Aperturas Planas con Mancuernas", grupo_muscular: "Pecho", patron: "Aducción / Aperturas", equipo: "Mancuernas", agarre: "Neutro", variante: "Banco Plano", tipo_registro: "peso_reps", tier: "D" },
+            { id: "pec_01", nombre: "Press Plano con Barra", grupo_muscular: "Pecho", patron: "Empuje Horizontal / Press", equipo: "Barra", agarre: "Prono", variante: "Banco Plano", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["pecho"], musculos_secundarios: ["triceps", "delt_ant_med"] },
+            { id: "pec_02", nombre: "Press Plano con Mancuernas", grupo_muscular: "Pecho", patron: "Empuje Horizontal / Press", equipo: "Mancuernas", agarre: "Prono", variante: "Banco Plano", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["pecho"], musculos_secundarios: ["triceps", "delt_ant_med"] },
+            { id: "pec_03", nombre: "Press Inclinado con Mancuernas (30°)", grupo_muscular: "Pecho", patron: "Empuje Inclinado", equipo: "Mancuernas", agarre: "Prono", variante: "30°", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["pecho"], musculos_secundarios: ["delt_ant_med", "triceps"] },
+            { id: "pec_04", nombre: "Press Inclinado con Barra", grupo_muscular: "Pecho", patron: "Empuje Inclinado", equipo: "Barra", agarre: "Prono", variante: "30°", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["pecho"], musculos_secundarios: ["delt_ant_med", "triceps"] },
+            { id: "pec_05", nombre: "Cruce de Poleas (Down-Up)", grupo_muscular: "Pecho", patron: "Aducción / Aperturas", equipo: "Polea", agarre: "Supino", variante: "Inferior a Superior", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["pecho"], musculos_secundarios: ["delt_ant_med"] },
+            { id: "pec_06", nombre: "Cruce de Poleas (Up-Down)", grupo_muscular: "Pecho", patron: "Aducción / Aperturas", equipo: "Polea", agarre: "Neutro", variante: "Superior a Inferior", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["pecho"], musculos_secundarios: ["delt_ant_med"] },
+            { id: "pec_07", nombre: "Press en Banco Hammer", grupo_muscular: "Pecho", patron: "Empuje Horizontal / Press", equipo: "Máquina Hammer", agarre: "Neutro", variante: "Convergente", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["pecho"], musculos_secundarios: ["triceps", "delt_ant_med"] },
+            { id: "pec_08", nombre: "Fondos en Paralelas (Inclinado Pecho)", grupo_muscular: "Pecho", patron: "Empuje Declinado / Fondos", equipo: "Peso Corporal", agarre: "Neutro", variante: "Torso Inclinado", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["pecho"], musculos_secundarios: ["triceps", "delt_ant_med"] },
+            { id: "pec_09", nombre: "Flexiones en Déficit / Pliométricas", grupo_muscular: "Pecho", patron: "Empuje Horizontal / Press", equipo: "Peso Corporal", agarre: "Prono", variante: "Déficit", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["pecho"], musculos_secundarios: ["triceps", "delt_ant_med", "abdominales"] },
+            { id: "pec_10", nombre: "Press Declinado con Barra", grupo_muscular: "Pecho", patron: "Empuje Declinado", equipo: "Barra", agarre: "Prono", variante: "Declinado", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["pecho"], musculos_secundarios: ["triceps"] },
+            { id: "pec_11", nombre: "Aperturas en Máquina (Peck Deck)", grupo_muscular: "Pecho", patron: "Aducción / Aperturas", equipo: "Máquina", agarre: "Neutro", variante: "Sentado", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["pecho"], musculos_secundarios: ["delt_ant_med"] },
+            { id: "pec_12", nombre: "Press de Pecho en Máquina", grupo_muscular: "Pecho", patron: "Empuje Horizontal / Press", equipo: "Máquina", agarre: "Prono", variante: "Sentado", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["pecho"], musculos_secundarios: ["triceps", "delt_ant_med"] },
+            { id: "pec_13", nombre: "Aperturas Planas con Mancuernas", grupo_muscular: "Pecho", patron: "Aducción / Aperturas", equipo: "Mancuernas", agarre: "Neutro", variante: "Banco Plano", tipo_registro: "peso_reps", tier: "D", musculos_principales: ["pecho"], musculos_secundarios: ["delt_ant_med"] },
 
             // PIERNAS (CUÁDRICEPS, GLÚTEOS, ISQUIOS Y GEMELOS)
-            { id: "pie_01", nombre: "Sentadilla Frontal con Barra", grupo_muscular: "Piernas", patron: "Cuádriceps / Rodilla", equipo: "Barra", agarre: "Prono", variante: "Frontal", tipo_registro: "peso_reps", tier: "S" },
-            { id: "pie_02", nombre: "Sentadillas con Barra (Barra Alta)", grupo_muscular: "Piernas", patron: "Cuádriceps / Rodilla", equipo: "Barra", agarre: "Prono", variante: "Libre", tipo_registro: "peso_reps", tier: "S" },
-            { id: "pie_03", nombre: "Sentadilla Hack", grupo_muscular: "Piernas", patron: "Cuádriceps / Rodilla", equipo: "Máquina", agarre: null, variante: "Inclinada", tipo_registro: "peso_reps", tier: "S" },
-            { id: "pie_04", nombre: "Hip Thrust con Barra", grupo_muscular: "Piernas", patron: "Glúteos / Bisagra", equipo: "Barra", agarre: null, variante: "Banco", tipo_registro: "peso_reps", tier: "S" },
-            { id: "pie_05", nombre: "Sentadilla Búlgara", grupo_muscular: "Piernas", patron: "Cuádriceps / Unilateral", equipo: "Mancuernas", agarre: "Neutro", variante: "Unilateral", tipo_registro: "peso_reps", tier: "A" },
-            { id: "pie_06", nombre: "Zancada en Reversa", grupo_muscular: "Piernas", patron: "Cuádriceps / Unilateral", equipo: "Mancuernas", agarre: "Neutro", variante: "Hacia Atrás", tipo_registro: "peso_reps", tier: "A" },
-            { id: "pie_07", nombre: "Curl Isquiotibial Sentado", grupo_muscular: "Piernas", patron: "Isquios / Flexión Rodilla", equipo: "Máquina", agarre: null, variante: "Seated Leg Curl", tipo_registro: "peso_reps", tier: "S" },
-            { id: "pie_08", nombre: "Curl Nórdico / Glute Ham Raise", grupo_muscular: "Piernas", patron: "Isquios / Flexión Rodilla", equipo: "Peso Corporal", agarre: null, variante: "Excéntrico", tipo_registro: "peso_reps", tier: "S" },
-            { id: "pie_09", nombre: "Prensa 45°", grupo_muscular: "Piernas", patron: "Cuádriceps / Rodilla", equipo: "Máquina", agarre: null, variante: "Rango Completo", tipo_registro: "peso_reps", tier: "B" },
-            { id: "pie_10", nombre: "Curl Isquiotibial Acostado", grupo_muscular: "Piernas", patron: "Isquios / Flexión Rodilla", equipo: "Máquina", agarre: null, variante: "Lying Leg Curl", tipo_registro: "peso_reps", tier: "B" },
-            { id: "pie_11", nombre: "Glúteos en Polea (Patada)", grupo_muscular: "Piernas", patron: "Glúteos / Extensión Cadera", equipo: "Polea", agarre: null, variante: "Tobillera", tipo_registro: "peso_reps", tier: "B" },
-            { id: "pie_12", nombre: "Sillón de Cuádriceps", grupo_muscular: "Piernas", patron: "Cuádriceps / Aislamiento", equipo: "Máquina", agarre: null, variante: "Extensión", tipo_registro: "peso_reps", tier: "C" },
-            { id: "pie_13", nombre: "Prensa Horizontal", grupo_muscular: "Piernas", patron: "Cuádriceps / Rodilla", equipo: "Máquina", agarre: null, variante: "Sentado", tipo_registro: "peso_reps", tier: "B" },
-            { id: "pie_14", nombre: "Abductores en Máquina", grupo_muscular: "Piernas", patron: "Abducción / Glúteo Medio", equipo: "Máquina", agarre: null, variante: "Sentado", tipo_registro: "peso_reps", tier: "B" },
-            { id: "pie_15", nombre: "Aductores en Máquina", grupo_muscular: "Piernas", patron: "Aducción", equipo: "Máquina", agarre: null, variante: "Sentado", tipo_registro: "peso_reps", tier: "B" },
-            { id: "pie_16", nombre: "Gemelos de Pie / en Prensa", grupo_muscular: "Piernas", patron: "Gemelos", equipo: "Máquina", agarre: null, variante: "Rodilla Extendida", tipo_registro: "peso_reps", tier: "A" },
-            { id: "pie_17", nombre: "Sóleo Sentado", grupo_muscular: "Piernas", patron: "Gemelos", equipo: "Máquina", agarre: null, variante: "Rodilla Flexionada", tipo_registro: "peso_reps", tier: "B" },
+            { id: "pie_01", nombre: "Sentadilla Frontal con Barra", grupo_muscular: "Piernas", patron: "Cuádriceps / Rodilla", equipo: "Barra", agarre: "Prono", variante: "Frontal", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["cuadriceps"], musculos_secundarios: ["gluteos", "abdominales"] },
+            { id: "pie_02", nombre: "Sentadillas con Barra (Barra Alta)", grupo_muscular: "Piernas", patron: "Cuádriceps / Rodilla", equipo: "Barra", agarre: "Prono", variante: "Libre", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["cuadriceps", "gluteos"], musculos_secundarios: ["lumbar", "abdominales"] },
+            { id: "pie_03", nombre: "Sentadilla Hack", grupo_muscular: "Piernas", patron: "Cuádriceps / Rodilla", equipo: "Máquina", agarre: null, variante: "Inclinada", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["cuadriceps"], musculos_secundarios: ["gluteos"] },
+            { id: "pie_04", nombre: "Hip Thrust con Barra", grupo_muscular: "Piernas", patron: "Glúteos / Bisagra", equipo: "Barra", agarre: null, variante: "Banco", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["gluteos"], musculos_secundarios: ["isquios"] },
+            { id: "pie_05", nombre: "Sentadilla Búlgara", grupo_muscular: "Piernas", patron: "Cuádriceps / Unilateral", equipo: "Mancuernas", agarre: "Neutro", variante: "Unilateral", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["cuadriceps", "gluteos"], musculos_secundarios: ["isquios"] },
+            { id: "pie_06", nombre: "Zancada en Reversa", grupo_muscular: "Piernas", patron: "Cuádriceps / Unilateral", equipo: "Mancuernas", agarre: "Neutro", variante: "Hacia Atrás", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["cuadriceps", "gluteos"], musculos_secundarios: ["isquios"] },
+            { id: "pie_07", nombre: "Curl Isquiotibial Sentado", grupo_muscular: "Piernas", patron: "Isquios / Flexión Rodilla", equipo: "Máquina", agarre: null, variante: "Seated Leg Curl", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["isquios"], musculos_secundarios: [] },
+            { id: "pie_08", nombre: "Curl Nórdico / Glute Ham Raise", grupo_muscular: "Piernas", patron: "Isquios / Flexión Rodilla", equipo: "Peso Corporal", agarre: null, variante: "Excéntrico", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["isquios"], musculos_secundarios: ["gluteos", "lumbar"] },
+            { id: "pie_09", nombre: "Prensa 45°", grupo_muscular: "Piernas", patron: "Cuádriceps / Rodilla", equipo: "Máquina", agarre: null, variante: "Rango Completo", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["cuadriceps"], musculos_secundarios: ["gluteos"] },
+            { id: "pie_10", nombre: "Curl Isquiotibial Acostado", grupo_muscular: "Piernas", patron: "Isquios / Flexión Rodilla", equipo: "Máquina", agarre: null, variante: "Lying Leg Curl", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["isquios"], musculos_secundarios: ["gemelos"] },
+            { id: "pie_11", nombre: "Glúteos en Polea (Patada)", grupo_muscular: "Piernas", patron: "Glúteos / Extensión Cadera", equipo: "Polea", agarre: null, variante: "Tobillera", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["gluteos"], musculos_secundarios: ["isquios"] },
+            { id: "pie_12", nombre: "Sillón de Cuádriceps", grupo_muscular: "Piernas", patron: "Cuádriceps / Aislamiento", equipo: "Máquina", agarre: null, variante: "Extensión", tipo_registro: "peso_reps", tier: "C", musculos_principales: ["cuadriceps"], musculos_secundarios: [] },
+            { id: "pie_13", nombre: "Prensa Horizontal", grupo_muscular: "Piernas", patron: "Cuádriceps / Rodilla", equipo: "Máquina", agarre: null, variante: "Sentado", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["cuadriceps"], musculos_secundarios: ["gluteos"] },
+            { id: "pie_14", nombre: "Abductores en Máquina", grupo_muscular: "Piernas", patron: "Abducción / Glúteo Medio", equipo: "Máquina", agarre: null, variante: "Sentado", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["gluteos"], musculos_secundarios: [] },
+            { id: "pie_15", nombre: "Aductores en Máquina", grupo_muscular: "Piernas", patron: "Aducción", equipo: "Máquina", agarre: null, variante: "Sentado", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["cuadriceps"], musculos_secundarios: ["gluteos"] },
+            { id: "pie_16", nombre: "Gemelos de Pie / en Prensa", grupo_muscular: "Piernas", patron: "Gemelos", equipo: "Máquina", agarre: null, variante: "Rodilla Extendida", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["gemelos"], musculos_secundarios: [] },
+            { id: "pie_17", nombre: "Sóleo Sentado", grupo_muscular: "Piernas", patron: "Gemelos", equipo: "Máquina", agarre: null, variante: "Rodilla Flexionada", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["gemelos"], musculos_secundarios: [] },
+            { id: "custom_1795430459690", nombre: "Sentadilla con estructura", grupo_muscular: "Piernas", patron: "Bisagra / Fuerza Total", equipo: "Discos", agarre: "Neutro", variante: null, tipo_registro: "peso_reps", tier: "A", musculos_principales: ["cuadriceps", "gluteos"], musculos_secundarios: ["lumbar", "trapecio", "antebrazos"] },
+            { id: "custom_1795186467981", nombre: "Glúteos en máquina (patada)", grupo_muscular: "Piernas", patron: "Glúteos / Extensión Cadera", equipo: "Máquina", agarre: null, variante: null, tipo_registro: "peso_reps", tier: "A", musculos_principales: ["gluteos"], musculos_secundarios: ["isquios"] },
 
             // HOMBROS & TRAPECIOS
-            { id: "hom_01", nombre: "Press Militar con Mancuernas", grupo_muscular: "Hombros", patron: "Empuje Vertical / Press", equipo: "Mancuernas", agarre: "Prono", variante: "De pie / Sentado", tipo_registro: "peso_reps", tier: "S" },
-            { id: "hom_02", nombre: "Vuelos Laterales en Polea", grupo_muscular: "Hombros", patron: "Deltoides Medio / Vuelos", equipo: "Polea", agarre: "Neutro", variante: "Unilateral", tipo_registro: "peso_reps", tier: "S" },
-            { id: "hom_03", nombre: "Face Pull (Jalón a la Cara)", grupo_muscular: "Hombros", patron: "Deltoides Posterior", equipo: "Polea", agarre: "Neutro", variante: "Soga", tipo_registro: "peso_reps", tier: "S" },
-            { id: "hom_04", nombre: "Vuelos Posteriores Supinados (Reverse Fly)", grupo_muscular: "Hombros", patron: "Deltoides Posterior", equipo: "Mancuernas", agarre: "Supino", variante: "Inclinado", tipo_registro: "peso_reps", tier: "S" },
-            { id: "hom_05", nombre: "Vuelos Laterales con Mancuernas", grupo_muscular: "Hombros", patron: "Deltoides Medio / Vuelos", equipo: "Mancuernas", agarre: "Neutro", variante: "Plano Escapular", tipo_registro: "peso_reps", tier: "A" },
-            { id: "hom_06", nombre: "Press Arnold", grupo_muscular: "Hombros", patron: "Empuje Vertical / Press", equipo: "Mancuernas", agarre: "Rotación", variante: "Sentado", tipo_registro: "peso_reps", tier: "B" },
-            { id: "hom_07", nombre: "Press Militar en Máquina Smith", grupo_muscular: "Hombros", patron: "Empuje Vertical / Press", equipo: "Máquina Smith", agarre: "Prono", variante: "Sentado", tipo_registro: "peso_reps", tier: "B" },
-            { id: "hom_08", nombre: "Vuelos Laterales en Máquina", grupo_muscular: "Hombros", patron: "Deltoides Medio / Vuelos", equipo: "Máquina", agarre: "Neutro", variante: "Sentado", tipo_registro: "peso_reps", tier: "B" },
-            { id: "hom_09", nombre: "Pájaros / Deltoides Posterior en Máquina", grupo_muscular: "Hombros", patron: "Deltoides Posterior", equipo: "Máquina", agarre: "Neutro", variante: "Peck Deck Invertido", tipo_registro: "peso_reps", tier: "B" },
-            { id: "hom_10", nombre: "Encogimiento de Trapecio en Polea / Barra", grupo_muscular: "Hombros", patron: "Trapecio", equipo: "Polea / Barra", agarre: "Neutro", variante: "Inclinado", tipo_registro: "peso_reps", tier: "A" },
-            { id: "hom_11", nombre: "Paseo del Granjero (Farmer Carry)", grupo_muscular: "Hombros", patron: "Trapecio / Estabilidad", equipo: "Mancuernas", agarre: "Neutro", variante: "Caminata", tipo_registro: "peso_reps", tier: "A" },
-            { id: "hom_12", nombre: "Remo al Mentón / Erguido", grupo_muscular: "Hombros", patron: "Deltoides Medio / Trapecio", equipo: "Barra", agarre: "Prono", variante: "Estrecho", tipo_registro: "peso_reps", tier: "D" },
-            { id: "hom_13", nombre: "Press Militar Tras Nuca", grupo_muscular: "Hombros", patron: "Empuje Vertical / Press", equipo: "Barra", agarre: "Prono", variante: "Tras Nuca", tipo_registro: "peso_reps", tier: "D" },
+            { id: "hom_01", nombre: "Press Militar con Mancuernas", grupo_muscular: "Hombros", patron: "Empuje Vertical / Press", equipo: "Mancuernas", agarre: "Prono", variante: "De pie / Sentado", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["delt_ant_med"], musculos_secundarios: ["triceps", "trapecio"] },
+            { id: "hom_02", nombre: "Vuelos Laterales en Polea", grupo_muscular: "Hombros", patron: "Deltoides Medio / Vuelos", equipo: "Polea", agarre: "Neutro", variante: "Unilateral", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["delt_ant_med"], musculos_secundarios: [] },
+            { id: "hom_03", nombre: "Face Pull (Jalón a la Cara)", grupo_muscular: "Hombros", patron: "Deltoides Posterior", equipo: "Polea", agarre: "Neutro", variante: "Soga", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["delt_post"], musculos_secundarios: ["trapecio"] },
+            { id: "hom_04", nombre: "Vuelos Posteriores Supinados (Reverse Fly)", grupo_muscular: "Hombros", patron: "Deltoides Posterior", equipo: "Mancuernas", agarre: "Supino", variante: "Inclinado", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["delt_post"], musculos_secundarios: ["trapecio"] },
+            { id: "hom_05", nombre: "Vuelos Laterales con Mancuernas", grupo_muscular: "Hombros", patron: "Deltoides Medio / Vuelos", equipo: "Mancuernas", agarre: "Neutro", variante: "Plano Escapular", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["delt_ant_med"], musculos_secundarios: [] },
+            { id: "hom_06", nombre: "Press Arnold", grupo_muscular: "Hombros", patron: "Empuje Vertical / Press", equipo: "Mancuernas", agarre: "Rotación", variante: "Sentado", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["delt_ant_med"], musculos_secundarios: ["triceps"] },
+            { id: "hom_07", nombre: "Press Militar en Máquina Smith", grupo_muscular: "Hombros", patron: "Empuje Vertical / Press", equipo: "Máquina Smith", agarre: "Prono", variante: "Sentado", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["delt_ant_med"], musculos_secundarios: ["triceps"] },
+            { id: "hom_08", nombre: "Vuelos Laterales en Máquina", grupo_muscular: "Hombros", patron: "Deltoides Medio / Vuelos", equipo: "Máquina", agarre: "Neutro", variante: "Sentado", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["delt_ant_med"], musculos_secundarios: [] },
+            { id: "hom_09", nombre: "Pájaros / Deltoides Posterior en Máquina", grupo_muscular: "Hombros", patron: "Deltoides Posterior", equipo: "Máquina", agarre: "Neutro", variante: "Peck Deck Invertido", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["delt_post"], musculos_secundarios: ["trapecio"] },
+            { id: "hom_10", nombre: "Encogimiento de Trapecio en Polea / Barra", grupo_muscular: "Hombros", patron: "Trapecio", equipo: "Polea / Barra", agarre: "Neutro", variante: "Inclinado", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["trapecio"], musculos_secundarios: ["antebrazos"] },
+            { id: "hom_11", nombre: "Paseo del Granjero (Farmer Carry)", grupo_muscular: "Hombros", patron: "Trapecio / Estabilidad", equipo: "Mancuernas", agarre: "Neutro", variante: "Caminata", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["trapecio", "antebrazos"], musculos_secundarios: ["abdominales"] },
+            { id: "hom_12", nombre: "Remo al Mentón / Erguido", grupo_muscular: "Hombros", patron: "Deltoides Medio / Trapecio", equipo: "Barra", agarre: "Prono", variante: "Estrecho", tipo_registro: "peso_reps", tier: "D", musculos_principales: ["delt_ant_med"], musculos_secundarios: ["trapecio"] },
+            { id: "hom_13", nombre: "Press Militar Tras Nuca", grupo_muscular: "Hombros", patron: "Empuje Vertical / Press", equipo: "Barra", agarre: "Prono", variante: "Tras Nuca", tipo_registro: "peso_reps", tier: "D", musculos_principales: ["delt_ant_med"], musculos_secundarios: ["triceps"] },
+            { id: "custom_1795261467134", nombre: "Vuelo frontal en polea", grupo_muscular: "Hombros", patron: "Deltoide anterior", equipo: "Polea", agarre: "Prono", variante: null, tipo_registro: "peso_reps", tier: "A", musculos_principales: ["delt_ant_med"], musculos_secundarios: [] },
+            { id: "custom_1795261428747", nombre: "Peso frontal con disco", grupo_muscular: "Hombros", patron: "Deltoide anterior", equipo: "Disco", agarre: "Neutro", variante: null, tipo_registro: "peso_reps", tier: "B", musculos_principales: ["delt_ant_med"], musculos_secundarios: [] },
+            { id: "custom_1795261386722", nombre: "Peso frontal con mancuernas", grupo_muscular: "Hombros", patron: "Deltoide anterior", equipo: "Mancuernas", agarre: "Prono", variante: null, tipo_registro: "peso_reps", tier: "B", musculos_principales: ["delt_ant_med"], musculos_secundarios: [] },
+            { id: "custom_1795261347265", nombre: "Peso frontal en polea", grupo_muscular: "Hombros", patron: "Deltoide anterior", equipo: "Polea", agarre: "Neutro", variante: null, tipo_registro: "peso_reps", tier: "B", musculos_principales: ["delt_ant_med"], musculos_secundarios: [] },
+            { id: "custom_1795112853333", nombre: "Encogimientos de trapecio con mancuernas", grupo_muscular: "Hombros", patron: "Deltoides Medio / Trapecio", equipo: "Mancuernas", agarre: null, variante: null, tipo_registro: "peso_reps", tier: "B", musculos_principales: ["trapecio"], musculos_secundarios: ["antebrazos"] },
 
             // BÍCEPS
-            { id: "bic_01", nombre: "Curl con Barra Estricto", grupo_muscular: "Bíceps", patron: "Curl Supino", equipo: "Barra", agarre: "Supino", variante: "Barra Recta / Z", tipo_registro: "peso_reps", tier: "S" },
-            { id: "bic_02", nombre: "Curl Inclinado con Mancuernas", grupo_muscular: "Bíceps", patron: "Curl Estiramiento", equipo: "Mancuernas", agarre: "Supino", variante: "Banco 45°", tipo_registro: "peso_reps", tier: "S" },
-            { id: "bic_03", nombre: "Curl en Polea Baja", grupo_muscular: "Bíceps", patron: "Curl Supino", equipo: "Polea", agarre: "Supino", variante: "Tensión Constante", tipo_registro: "peso_reps", tier: "S" },
-            { id: "bic_04", nombre: "Curl Alternado con Mancuernas", grupo_muscular: "Bíceps", patron: "Curl Supino", equipo: "Mancuernas", agarre: "Supino", variante: "De pie", tipo_registro: "peso_reps", tier: "A" },
-            { id: "bic_05", nombre: "Curl Martillo", grupo_muscular: "Bíceps", patron: "Curl Neutro / Braquial", equipo: "Mancuernas", agarre: "Neutro", variante: "Alternado", tipo_registro: "peso_reps", tier: "A" },
-            { id: "bic_06", nombre: "Curl en Banco Scott (Predicador)", grupo_muscular: "Bíceps", patron: "Curl Pico / Corto", equipo: "Barra", agarre: "Supino", variante: "Barra W", tipo_registro: "peso_reps", tier: "B" },
-            { id: "bic_07", nombre: "Curl Araña (Spider Curl)", grupo_muscular: "Bíceps", patron: "Curl Pico / Corto", equipo: "Mancuernas", agarre: "Supino", variante: "Banco Inclinado", tipo_registro: "peso_reps", tier: "B" },
-            { id: "bic_08", nombre: "Curl Concentrado", grupo_muscular: "Bíceps", patron: "Curl Pico / Corto", equipo: "Mancuernas", agarre: "Supino", variante: "Sentado", tipo_registro: "peso_reps", tier: "C" },
+            { id: "bic_01", nombre: "Curl con Barra Estricto", grupo_muscular: "Bíceps", patron: "Curl Supino", equipo: "Barra", agarre: "Supino", variante: "Barra Recta / Z", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["biceps"], musculos_secundarios: ["antebrazos"] },
+            { id: "bic_02", nombre: "Curl Inclinado con Mancuernas", grupo_muscular: "Bíceps", patron: "Curl Estiramiento", equipo: "Mancuernas", agarre: "Supino", variante: "Banco 45°", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["biceps"], musculos_secundarios: [] },
+            { id: "bic_03", nombre: "Curl en Polea Baja", grupo_muscular: "Bíceps", patron: "Curl Supino", equipo: "Polea", agarre: "Supino", variante: "Tensión Constante", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["biceps"], musculos_secundarios: ["antebrazos"] },
+            { id: "bic_04", nombre: "Curl Alternado con Mancuernas", grupo_muscular: "Bíceps", patron: "Curl Supino", equipo: "Mancuernas", agarre: "Supino", variante: "De pie", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["biceps"], musculos_secundarios: ["antebrazos"] },
+            { id: "bic_05", nombre: "Curl Martillo", grupo_muscular: "Bíceps", patron: "Curl Neutro / Braquial", equipo: "Mancuernas", agarre: "Neutro", variante: "Alternado", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["biceps"], musculos_secundarios: ["antebrazos"] },
+            { id: "bic_06", nombre: "Curl en Banco Scott (Predicador)", grupo_muscular: "Bíceps", patron: "Curl Pico / Corto", equipo: "Barra", agarre: "Supino", variante: "Barra W", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["biceps"], musculos_secundarios: [] },
+            { id: "bic_07", nombre: "Curl Araña (Spider Curl)", grupo_muscular: "Bíceps", patron: "Curl Pico / Corto", equipo: "Mancuernas", agarre: "Supino", variante: "Banco Inclinado", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["biceps"], musculos_secundarios: [] },
+            { id: "bic_08", nombre: "Curl Concentrado", grupo_muscular: "Bíceps", patron: "Curl Pico / Corto", equipo: "Mancuernas", agarre: "Supino", variante: "Sentado", tipo_registro: "peso_reps", tier: "C", musculos_principales: ["biceps"], musculos_secundarios: [] },
+            { id: "custom_1795443425748", nombre: "Curl en polea baja con soga", grupo_muscular: "Bíceps", patron: "Bíceps", equipo: "Polea", agarre: "Neutro", variante: null, tipo_registro: "peso_reps", tier: "S", musculos_principales: ["biceps"], musculos_secundarios: ["antebrazos"] },
+            { id: "custom_1795430579455", nombre: "Curl con barra agarre neutro", grupo_muscular: "Bíceps", patron: "Curl Neutro / Braquial", equipo: "Barra", agarre: "Neutro", variante: null, tipo_registro: "peso_reps", tier: "A", musculos_principales: ["biceps"], musculos_secundarios: ["antebrazos"] },
 
             // TRÍCEPS
-            { id: "tri_01", nombre: "Extensiones de Tríceps Acostado (Press Francés)", grupo_muscular: "Tríceps", patron: "Extensión Cabeza Larga", equipo: "Barra", agarre: "Prono", variante: "Barra W", tipo_registro: "peso_reps", tier: "S" },
-            { id: "tri_02", nombre: "Press de Banca Agarre Cerrado", grupo_muscular: "Tríceps", patron: "Empuje Pesado", equipo: "Barra", agarre: "Prono", variante: "Banco Plano", tipo_registro: "peso_reps", tier: "S" },
-            { id: "tri_03", nombre: "Fondos en Paralelas (Erguido)", grupo_muscular: "Tríceps", patron: "Empuje / Fondos", equipo: "Peso Corporal", agarre: "Neutro", variante: "Torso Recto", tipo_registro: "peso_reps", tier: "A" },
-            { id: "tri_04", nombre: "Extensión Trasnuca en Polea con Soga", grupo_muscular: "Tríceps", patron: "Extensión Cabeza Larga", equipo: "Polea", agarre: "Neutro", variante: "Soga", tipo_registro: "peso_reps", tier: "A" },
-            { id: "tri_05", nombre: "Extensión Media en Polea (Pushdown)", grupo_muscular: "Tríceps", patron: "Extensión Lateral", equipo: "Polea", agarre: "Prono", variante: "Barra Recta", tipo_registro: "peso_reps", tier: "B" },
-            { id: "tri_06", nombre: "Extensión en Polea con Soga", grupo_muscular: "Tríceps", patron: "Extensión Lateral", equipo: "Polea", agarre: "Neutro", variante: "Soga", tipo_registro: "peso_reps", tier: "B" },
-            { id: "tri_07", nombre: "Patada de Tríceps en Polea / Mancuerna", grupo_muscular: "Tríceps", patron: "Extensión Contracción", equipo: "Polea", agarre: "Neutro", variante: "Unilateral", tipo_registro: "peso_reps", tier: "B" },
-            { id: "tri_08", nombre: "Fondos entre Bancos", grupo_muscular: "Tríceps", patron: "Empuje / Fondos", equipo: "Peso Corporal", agarre: "Prono", variante: "Banca", tipo_registro: "peso_reps", tier: "D" },
+            { id: "tri_01", nombre: "Extensiones de Tríceps Acostado (Press Francés)", grupo_muscular: "Tríceps", patron: "Extensión Cabeza Larga", equipo: "Barra", agarre: "Prono", variante: "Barra W", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["triceps"], musculos_secundarios: [] },
+            { id: "tri_02", nombre: "Press de Banca Agarre Cerrado", grupo_muscular: "Tríceps", patron: "Empuje Pesado", equipo: "Barra", agarre: "Prono", variante: "Banco Plano", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["triceps"], musculos_secundarios: ["pecho", "delt_ant_med"] },
+            { id: "tri_03", nombre: "Fondos en Paralelas (Erguido)", grupo_muscular: "Tríceps", patron: "Empuje / Fondos", equipo: "Peso Corporal", agarre: "Neutro", variante: "Torso Recto", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["triceps"], musculos_secundarios: ["pecho", "delt_ant_med"] },
+            { id: "tri_04", nombre: "Extensión Trasnuca en Polea con Soga", grupo_muscular: "Tríceps", patron: "Extensión Cabeza Larga", equipo: "Polea", agarre: "Neutro", variante: "Soga", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["triceps"], musculos_secundarios: [] },
+            { id: "tri_05", nombre: "Extensión Media en Polea (Pushdown)", grupo_muscular: "Tríceps", patron: "Extensión Lateral", equipo: "Polea", agarre: "Prono", variante: "Barra Recta", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["triceps"], musculos_secundarios: [] },
+            { id: "tri_06", nombre: "Extensión en Polea con Soga", grupo_muscular: "Tríceps", patron: "Extensión Lateral", equipo: "Polea", agarre: "Neutro", variante: "Soga", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["triceps"], musculos_secundarios: [] },
+            { id: "tri_07", nombre: "Patada de Tríceps en Polea / Mancuerna", grupo_muscular: "Tríceps", patron: "Extensión Contracción", equipo: "Polea", agarre: "Neutro", variante: "Unilateral", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["triceps"], musculos_secundarios: [] },
+            { id: "tri_08", nombre: "Fondos entre Bancos", grupo_muscular: "Tríceps", patron: "Empuje / Fondos", equipo: "Peso Corporal", agarre: "Prono", variante: "Banca", tipo_registro: "peso_reps", tier: "D", musculos_principales: ["triceps"], musculos_secundarios: ["delt_ant_med"] },
+            { id: "custom_1794965857813", nombre: "Pullover con mancuernas en banco", grupo_muscular: "Tríceps", patron: "Extensión Hombro / Pullover", equipo: "Mancuernas", agarre: "Neutro", variante: null, tipo_registro: "peso_reps", tier: "B", musculos_principales: ["triceps"], musculos_secundarios: ["dorsales", "pecho"] },
 
             // ABDOMINALES
-            { id: "abs_01", nombre: "Rueda Abdominal (Ab Rollout)", grupo_muscular: "Abdominales", patron: "Core / Anti-extensión", equipo: "Peso Corporal", agarre: "Prono", variante: "De rodillas / Pie", tipo_registro: "peso_reps", tier: "S" },
-            { id: "abs_02", nombre: "Elevación de Piernas Colgado / Sillón del Rey", grupo_muscular: "Abdominales", patron: "Core / Flexión Inferior", equipo: "Peso Corporal", agarre: null, variante: "Enrollamiento Pélvico", tipo_registro: "peso_reps", tier: "S" },
-            { id: "abs_03", nombre: "Plancha RKC (Retroversión Pélvica)", grupo_muscular: "Abdominales", patron: "Core / Isométrico", equipo: "Peso Corporal", agarre: null, variante: "Máxima Tensión", tipo_registro: "peso_reps", tier: "S" },
-            { id: "abs_04", nombre: "Crunch en Polea Alta", grupo_muscular: "Abdominales", patron: "Core / Flexión Superior", equipo: "Polea", agarre: "Neutro", variante: "Arrodillado", tipo_registro: "peso_reps", tier: "A" },
-            { id: "abs_05", nombre: "Press Pallof", grupo_muscular: "Abdominales", patron: "Core / Anti-rotación", equipo: "Polea", agarre: "Neutro", variante: "De pie", tipo_registro: "peso_reps", tier: "A" },
-            { id: "abs_06", nombre: "Abdominales en Colchoneta (Crunch Controlado)", grupo_muscular: "Abdominales", patron: "Core / Flexión", equipo: "Peso Corporal", agarre: null, variante: "Plano", tipo_registro: "peso_reps", tier: "B" },
+            { id: "abs_01", nombre: "Rueda Abdominal (Ab Rollout)", grupo_muscular: "Abdominales", patron: "Core / Anti-extensión", equipo: "Peso Corporal", agarre: "Prono", variante: "De rodillas / Pie", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["abdominales"], musculos_secundarios: ["dorsales"] },
+            { id: "abs_02", nombre: "Elevación de Piernas Colgado / Sillón del Rey", grupo_muscular: "Abdominales", patron: "Core / Flexión Inferior", equipo: "Peso Corporal", agarre: null, variante: "Enrollamiento Pélvico", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["abdominales"], musculos_secundarios: ["antebrazos"] },
+            { id: "abs_03", nombre: "Plancha RKC (Retroversión Pélvica)", grupo_muscular: "Abdominales", patron: "Core / Isométrico", equipo: "Peso Corporal", agarre: null, variante: "Máxima Tensión", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["abdominales"], musculos_secundarios: ["gluteos"] },
+            { id: "abs_04", nombre: "Crunch en Polea Alta", grupo_muscular: "Abdominales", patron: "Core / Flexión Superior", equipo: "Polea", agarre: "Neutro", variante: "Arrodillado", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["abdominales"], musculos_secundarios: [] },
+            { id: "abs_05", nombre: "Press Pallof", grupo_muscular: "Abdominales", patron: "Core / Anti-rotación", equipo: "Polea", agarre: "Neutro", variante: "De pie", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["abdominales"], musculos_secundarios: [] },
+            { id: "abs_06", nombre: "Abdominales en Colchoneta (Crunch Controlado)", grupo_muscular: "Abdominales", patron: "Core / Flexión", equipo: "Peso Corporal", agarre: null, variante: "Plano", tipo_registro: "peso_reps", tier: "B", musculos_principales: ["abdominales"], musculos_secundarios: [] },
+            { id: "custom_1795430722332", nombre: "Twist en polea", grupo_muscular: "Abdominales", patron: "Core / Isométrico", equipo: "Polea", agarre: "Prono", variante: null, tipo_registro: "peso_reps", tier: "S", musculos_principales: ["abdominales"], musculos_secundarios: [] },
+            { id: "custom_1795011519780", nombre: "Abdominales en banco posición elevada", grupo_muscular: "Abdominales", patron: "Core / Flexión", equipo: "Peso corporal", agarre: null, variante: null, tipo_registro: "peso_reps", tier: "B", musculos_principales: ["abdominales"], musculos_secundarios: [] },
+            { id: "custom_1794915068564", nombre: "Oblicuos en colchoneta", grupo_muscular: "Abdominales", patron: "Core / Anti-rotación", equipo: "Pesas", agarre: null, variante: null, tipo_registro: "peso_reps", tier: "A", musculos_principales: ["abdominales"], musculos_secundarios: [] },
 
             // CARDIO
-            { id: "car_01", nombre: "Cinta", grupo_muscular: "Cardio", patron: "Cardio", equipo: "Máquina Cardio", agarre: null, variante: "Trote / Inclinación", tipo_registro: "tiempo_distancia", tier: "A" },
-            { id: "car_02", nombre: "Remo Mecánico", grupo_muscular: "Cardio", patron: "Cardio", equipo: "Máquina Cardio", agarre: "Prono", variante: "Continuo", tipo_registro: "tiempo_distancia", tier: "S" },
-            { id: "car_03", nombre: "Bici Fija / Spinning", grupo_muscular: "Cardio", patron: "Cardio", equipo: "Máquina Cardio", agarre: null, variante: "Moderado", tipo_registro: "tiempo_distancia", tier: "A" },
-            { id: "car_04", nombre: "Elíptico", grupo_muscular: "Cardio", patron: "Cardio", equipo: "Máquina Cardio", agarre: null, variante: "Moderado", tipo_registro: "tiempo_distancia", tier: "B" },
-            { id: "car_05", nombre: "Stepper", grupo_muscular: "Cardio", patron: "Cardio", equipo: "Máquina Cardio", agarre: null, variante: "Continuo", tipo_registro: "tiempo_distancia", tier: "B" },
+            { id: "car_01", nombre: "Cinta", grupo_muscular: "Cardio", patron: "Cardio", equipo: "Máquina Cardio", agarre: null, variante: "Trote / Inclinación", tipo_registro: "tiempo_distancia", tier: "A", musculos_principales: [], musculos_secundarios: ["gemelos", "cuadriceps"] },
+            { id: "car_02", nombre: "Remo Mecánico", grupo_muscular: "Cardio", patron: "Cardio", equipo: "Máquina Cardio", agarre: "Prono", variante: "Continuo", tipo_registro: "tiempo_distancia", tier: "S", musculos_principales: [], musculos_secundarios: ["dorsales", "cuadriceps"] },
+            { id: "car_03", nombre: "Bici Fija / Spinning", grupo_muscular: "Cardio", patron: "Cardio", equipo: "Máquina Cardio", agarre: null, variante: "Moderado", tipo_registro: "tiempo_distancia", tier: "A", musculos_principales: [], musculos_secundarios: ["cuadriceps"] },
+            { id: "car_04", nombre: "Elíptico", grupo_muscular: "Cardio", patron: "Cardio", equipo: "Máquina Cardio", agarre: null, variante: "Moderado", tipo_registro: "tiempo_distancia", tier: "B", musculos_principales: [], musculos_secundarios: ["cuadriceps", "gluteos"] },
+            { id: "car_05", nombre: "Stepper", grupo_muscular: "Cardio", patron: "Cardio", equipo: "Máquina Cardio", agarre: null, variante: "Continuo", tipo_registro: "tiempo_distancia", tier: "B", musculos_principales: [], musculos_secundarios: ["gluteos", "gemelos"] },
+            { id: "custom_1794914519457", nombre: "Saltar la soga", grupo_muscular: "Cardio", patron: "Cardio", equipo: "Peso corporal", agarre: null, variante: null, tipo_registro: "tiempo_distancia", tier: "A", musculos_principales: [], musculos_secundarios: ["gemelos"] },
 
             // MULTIARTICULAR & ANTEBRAZOS
-            { id: "mul_01", nombre: "Peso Muerto Rumano", grupo_muscular: "Multiarticular", patron: "Bisagra / Cadena Posterior", equipo: "Barra", agarre: "Prono", variante: "Isquios/Glúteos", tipo_registro: "peso_reps", tier: "S" },
-            { id: "mul_02", nombre: "Peso Muerto Convencional", grupo_muscular: "Multiarticular", patron: "Bisagra / Fuerza Total", equipo: "Barra", agarre: "Mixto", variante: "Libre", tipo_registro: "peso_reps", tier: "A" },
-            { id: "mul_03", nombre: "Peso Muerto Sumo", grupo_muscular: "Multiarticular", patron: "Bisagra / Fuerza", equipo: "Barra", agarre: "Mixto", variante: "Sumo", tipo_registro: "peso_reps", tier: "A" },
-            { id: "ant_01", nombre: "Curl de Muñeca con Barra (Flexión)", grupo_muscular: "Antebrazos", patron: "Flexión Muñeca", equipo: "Barra", agarre: "Supino", variante: "Banco", tipo_registro: "peso_reps", tier: "A" },
-            { id: "ant_02", nombre: "Extensión de Muñeca con Barra", grupo_muscular: "Antebrazos", patron: "Extensión Muñeca", equipo: "Barra", agarre: "Prono", variante: "Banco", tipo_registro: "peso_reps", tier: "A" },
-            { id: "ant_03", nombre: "Curl Invertido con Barra", grupo_muscular: "Antebrazos", patron: "Braquiorradial / Prono", equipo: "Barra", agarre: "Prono", variante: "Barra Z", tipo_registro: "peso_reps", tier: "S" },
-            { id: "ant_04", nombre: "Cuelgue en Barra (Dead Hang)", grupo_muscular: "Antebrazos", patron: "Agarre Isométrico", equipo: "Peso Corporal", agarre: "Prono", variante: "Agarre", tipo_registro: "peso_reps", tier: "S" }
+            { id: "mul_01", nombre: "Peso Muerto Rumano", grupo_muscular: "Multiarticular", patron: "Bisagra / Cadena Posterior", equipo: "Barra", agarre: "Prono", variante: "Isquios/Glúteos", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["isquios", "gluteos"], musculos_secundarios: ["lumbar", "antebrazos"] },
+            { id: "mul_02", nombre: "Peso Muerto Convencional", grupo_muscular: "Multiarticular", patron: "Bisagra / Fuerza Total", equipo: "Barra", agarre: "Mixto", variante: "Libre", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["isquios", "gluteos", "lumbar"], musculos_secundarios: ["cuadriceps", "trapecio", "antebrazos"] },
+            { id: "mul_03", nombre: "Peso Muerto Sumo", grupo_muscular: "Multiarticular", patron: "Bisagra / Fuerza", equipo: "Barra", agarre: "Mixto", variante: "Sumo", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["gluteos", "cuadriceps"], musculos_secundarios: ["isquios", "lumbar", "antebrazos"] },
+            { id: "custom_1794915021906", nombre: "Paseo de granjero", grupo_muscular: "Multiarticular", patron: "Cardio", equipo: "Mancuernas", agarre: null, variante: null, tipo_registro: "peso_reps", tier: "C", musculos_principales: ["trapecio", "antebrazos"], musculos_secundarios: ["abdominales"] },
+            { id: "custom_1794913696195", nombre: "Balanceo con peso frontal", grupo_muscular: "Multiarticular", patron: "Bisagra / Cadena Posterior", equipo: "Pesa rusa", agarre: "Prono", variante: null, tipo_registro: "peso_reps", tier: "C", musculos_principales: ["gluteos", "isquios"], musculos_secundarios: ["lumbar", "delt_ant_med"] },
+            { id: "ant_01", nombre: "Curl de Muñeca con Barra (Flexión)", grupo_muscular: "Antebrazos", patron: "Flexión Muñeca", equipo: "Barra", agarre: "Supino", variante: "Banco", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["antebrazos"], musculos_secundarios: [] },
+            { id: "ant_02", nombre: "Extensión de Muñeca con Barra", grupo_muscular: "Antebrazos", patron: "Extensión Muñeca", equipo: "Barra", agarre: "Prono", variante: "Banco", tipo_registro: "peso_reps", tier: "A", musculos_principales: ["antebrazos"], musculos_secundarios: [] },
+            { id: "ant_03", nombre: "Curl Invertido con Barra", grupo_muscular: "Antebrazos", patron: "Braquiorradial / Prono", equipo: "Barra", agarre: "Prono", variante: "Barra Z", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["antebrazos"], musculos_secundarios: ["biceps"] },
+            { id: "ant_04", nombre: "Cuelgue en Barra (Dead Hang)", grupo_muscular: "Antebrazos", patron: "Agarre Isométrico", equipo: "Peso Corporal", agarre: "Prono", variante: "Agarre", tipo_registro: "peso_reps", tier: "S", musculos_principales: ["antebrazos"], musculos_secundarios: ["dorsales"] }
         ];
 
         let EXERCISES_CATALOG = [];
@@ -911,9 +960,12 @@
         let editingLogId = null;
         let editHistSets = [];
         let editingCatalogExId = null;
+        let catEditorPrimaryMuscles = [];
+        let catEditorSecondaryMuscles = [];
         let historyDateFrom = "";
         let historyDateTo = "";
         let historyQuickMode = "";
+        let heatmapDetailedMode = false;
         let smartTargetMuscles = [];
         let smartExerciseCount = 6;
         let smartGeneratedIds = [];
@@ -927,36 +979,75 @@
             renderActiveRoutineSelect();
             syncSessionExercises();
             renderTrainView();
-            document.addEventListener("click", (e) => {
-                const menu = document.getElementById("historyMoreMenu");
-                if (menu && !menu.classList.contains("hidden") && !e.target.closest("#historyMoreMenu") && !e.target.closest("button[title='Más opciones']")) {
-                    menu.classList.add("hidden");
-                }
-            });
             lucide.createIcons();
         }
-
-        function isBodyweightExercise(ex) {
-            if (!ex) return false;
-            const eq = (ex.equipo || "").toLowerCase();
+        function inferMusclesForExercise(ex) {
             const name = (ex.nombre || "").toLowerCase();
-            const variant = (ex.variante || "").toLowerCase();
-            if (eq.includes("lastre") || name.includes("con peso") || variant.includes("lastrado")) {
-                return false;
+            const pat = (ex.patron || "").toLowerCase();
+            const grp = ex.grupo_muscular || "";
+
+            if (grp === "Cardio") {
+                if (name.includes("soga")) return { p: [], s: ["gemelos"] };
+                if (name.includes("remo")) return { p: [], s: ["dorsales", "cuadriceps"] };
+                return { p: [], s: ["cuadriceps", "gemelos"] };
             }
-            return eq.includes("peso corporal") || ex.id === "abs_03";
+            if (grp === "Espalda") {
+                if (name.includes("lumbar") || pat.includes("lumbar")) return { p: ["lumbar"], s: ["gluteos", "isquios"] };
+                if (name.includes("trapecio") || name.includes("encogimiento")) return { p: ["trapecio"], s: ["antebrazos"] };
+                if (pat.includes("horizontal") || name.includes("remo")) return { p: ["dorsales", "trapecio"], s: ["biceps"] };
+                return { p: ["dorsales"], s: ["biceps", "trapecio"] };
+            }
+            if (grp === "Pecho") return { p: ["pecho"], s: ["triceps", "delt_ant_med"] };
+            if (grp === "Piernas") {
+                if (name.includes("gemelo") || name.includes("sóleo") || name.includes("soleo")) return { p: ["gemelos"], s: [] };
+                if (name.includes("isquio") || pat.includes("isquio")) return { p: ["isquios"], s: ["gluteos"] };
+                if (name.includes("glúteo") || name.includes("gluteo") || name.includes("hip thrust") || name.includes("abductor")) return { p: ["gluteos"], s: ["isquios"] };
+                return { p: ["cuadriceps"], s: ["gluteos"] };
+            }
+            if (grp === "Hombros") {
+                if (name.includes("trapecio") || name.includes("encogimiento") || name.includes("granjero")) return { p: ["trapecio"], s: ["antebrazos"] };
+                if (pat.includes("posterior") || name.includes("face pull") || name.includes("pájaro")) return { p: ["delt_post"], s: ["trapecio"] };
+                return { p: ["delt_ant_med"], s: [] };
+            }
+            if (grp === "Bíceps") return { p: ["biceps"], s: ["antebrazos"] };
+            if (grp === "Tríceps") {
+                if (name.includes("pullover")) return { p: ["triceps"], s: ["dorsales", "pecho"] };
+                return { p: ["triceps"], s: [] };
+            }
+            if (grp === "Abdominales") return { p: ["abdominales"], s: [] };
+            if (grp === "Antebrazos") return { p: ["antebrazos"], s: [] };
+            if (grp === "Multiarticular") {
+                if (name.includes("granjero")) return { p: ["trapecio", "antebrazos"], s: ["abdominales"] };
+                return { p: ["gluteos", "isquios"], s: ["lumbar"] };
+            }
+            return { p: [], s: [] };
         }
 
         function loadState() {
             try {
                 const savedCatalog = JSON.parse(localStorage.getItem(STORAGE_KEYS.CATALOG));
+                const defaultMap = Object.fromEntries(DEFAULT_CATALOG.map(d => [d.id, d]));
                 if (savedCatalog && savedCatalog.length > 0) {
-                    const defaultTierMap = Object.fromEntries(DEFAULT_CATALOG.map(d => [d.id, d.tier]));
-                    EXERCISES_CATALOG = savedCatalog.map(ex => ({
-                        ...ex,
-                        equipo: ex.id === "esp_01" && ex.equipo === "Peso Corporal" ? "Peso Corporal + Lastre" : ex.equipo,
-                        tier: ex.tier || defaultTierMap[ex.id] || "A"
-                    }));
+                    EXERCISES_CATALOG = savedCatalog.map(ex => {
+                        const def = defaultMap[ex.id];
+                        const inferred = inferMusclesForExercise(ex);
+                        let prim = Array.isArray(ex.musculos_principales) ? ex.musculos_principales : (def ? def.musculos_principales : inferred.p);
+                        let sec = Array.isArray(ex.musculos_secundarios) ? ex.musculos_secundarios : (def ? def.musculos_secundarios : inferred.s);
+                        if (ex.id === "custom_1795430459690" && !sec.includes("antebrazos")) {
+                            sec = [...sec, "antebrazos"];
+                        }
+                        if (ex.id === "custom_1794965857813" && prim.includes("dorsales")) {
+                            prim = ["triceps"];
+                            sec = ["dorsales", "pecho"];
+                        }
+                        return {
+                            ...ex,
+                            equipo: ex.id === "esp_01" && ex.equipo === "Peso Corporal" ? "Peso Corporal + Lastre" : ex.equipo,
+                            tier: ex.tier || (def ? def.tier : "A"),
+                            musculos_principales: prim,
+                            musculos_secundarios: sec
+                        };
+                    });
                 } else {
                     EXERCISES_CATALOG = JSON.parse(JSON.stringify(DEFAULT_CATALOG));
                 }
@@ -1018,6 +1109,15 @@
                 return sets.map(s => `${s.r} reps`).join(" - ");
             }
             return sets.map(s => `${s.p}*${s.r}`).join(" - ");
+        }
+
+        function isBodyweightExercise(ex) {
+            if (!ex) return false;
+            const eq = (ex.equipo || "").toLowerCase();
+            const name = (ex.nombre || "").toLowerCase();
+            const varStr = (ex.variante || "").toLowerCase();
+            if (name.includes("con peso") || eq.includes("lastre") || varStr.includes("lastrado")) return false;
+            return eq.includes("peso corporal") && ex.tipo_registro !== "tiempo_distancia";
         }
 
         // ==========================================
@@ -1629,15 +1729,6 @@
         // ==========================================
         // 9. HISTORIAL (EDITABLE) Y CATÁLOGO (CRUD)
         // ==========================================
-        function toggleHistoryMenu(e) {
-            e.stopPropagation();
-            document.getElementById("historyMoreMenu").classList.toggle("hidden");
-        }
-
-        function closeHistoryMenu() {
-            document.getElementById("historyMoreMenu").classList.add("hidden");
-        }
-
         function openDateFilterModal() {
             document.getElementById("filterDateFrom").value = historyDateFrom;
             document.getElementById("filterDateTo").value = historyDateTo;
@@ -2012,6 +2103,41 @@
             document.getElementById("patternSuggestionsList").innerHTML = patterns.map(p => `<option value="${p}">`).join("");
         }
 
+        function renderCatalogMuscleTargetChips() {
+            const primContainer = document.getElementById("catPrimaryMusclesChips");
+            const secContainer = document.getElementById("catSecondaryMusclesChips");
+            if (!primContainer || !secContainer) return;
+
+            primContainer.innerHTML = SUB_MUSCLES_META.map(sm => {
+                const active = catEditorPrimaryMuscles.includes(sm.id);
+                return `<button type="button" onclick="toggleCatEditorMuscle('primary', '${sm.id}')" class="text-[10px] px-2 py-1 rounded-lg border transition ${active ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 font-bold' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'}">${sm.label}</button>`;
+            }).join("");
+
+            secContainer.innerHTML = SUB_MUSCLES_META.map(sm => {
+                const active = catEditorSecondaryMuscles.includes(sm.id);
+                return `<button type="button" onclick="toggleCatEditorMuscle('secondary', '${sm.id}')" class="text-[10px] px-2 py-1 rounded-lg border transition ${active ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'}">${sm.label}</button>`;
+            }).join("");
+        }
+
+        function toggleCatEditorMuscle(level, subId) {
+            if (level === "primary") {
+                if (catEditorPrimaryMuscles.includes(subId)) {
+                    catEditorPrimaryMuscles = catEditorPrimaryMuscles.filter(id => id !== subId);
+                } else {
+                    catEditorPrimaryMuscles.push(subId);
+                    catEditorSecondaryMuscles = catEditorSecondaryMuscles.filter(id => id !== subId);
+                }
+            } else {
+                if (catEditorSecondaryMuscles.includes(subId)) {
+                    catEditorSecondaryMuscles = catEditorSecondaryMuscles.filter(id => id !== subId);
+                } else {
+                    catEditorSecondaryMuscles.push(subId);
+                    catEditorPrimaryMuscles = catEditorPrimaryMuscles.filter(id => id !== subId);
+                }
+            }
+            renderCatalogMuscleTargetChips();
+        }
+
         function openCatalogEditor(exId = null) {
             editingCatalogExId = exId;
             populatePatternSuggestions();
@@ -2025,6 +2151,8 @@
                 document.getElementById("catNewPattern").value = ex.patron || "";
                 document.getElementById("catNewEquipment").value = ex.equipo || "";
                 document.getElementById("catNewGrip").value = ex.agarre || "";
+                catEditorPrimaryMuscles = [...(ex.musculos_principales || [])];
+                catEditorSecondaryMuscles = [...(ex.musculos_secundarios || [])];
             } else {
                 document.getElementById("catalogEditorTitle").textContent = "Nuevo Ejercicio";
                 document.getElementById("catNewName").value = "";
@@ -2033,7 +2161,10 @@
                 document.getElementById("catNewPattern").value = "";
                 document.getElementById("catNewEquipment").value = "";
                 document.getElementById("catNewGrip").value = "";
+                catEditorPrimaryMuscles = ["dorsales"];
+                catEditorSecondaryMuscles = ["biceps"];
             }
+            renderCatalogMuscleTargetChips();
             document.getElementById("catalogEditorModal").classList.remove("hidden");
             lucide.createIcons();
         }
@@ -2053,6 +2184,10 @@
 
             if (!nombre || !equipo) return showToast("Nombre y equipo son obligatorios");
 
+            const fallbackMuscles = inferMusclesForExercise({ nombre, grupo_muscular, patron });
+            const prim = catEditorPrimaryMuscles.length > 0 ? [...catEditorPrimaryMuscles] : fallbackMuscles.p;
+            const sec = catEditorSecondaryMuscles.length > 0 ? [...catEditorSecondaryMuscles] : (catEditorPrimaryMuscles.length > 0 ? [] : fallbackMuscles.s);
+
             if (editingCatalogExId) {
                 const idx = EXERCISES_CATALOG.findIndex(e => e.id === editingCatalogExId);
                 if (idx !== -1) {
@@ -2064,6 +2199,8 @@
                         patron: patron || grupo_muscular,
                         equipo,
                         agarre,
+                        musculos_principales: prim,
+                        musculos_secundarios: sec,
                         tipo_registro: grupo_muscular === "Cardio" ? "tiempo_distancia" : "peso_reps"
                     };
                 }
@@ -2078,6 +2215,8 @@
                     equipo,
                     agarre,
                     variante: null,
+                    musculos_principales: prim,
+                    musculos_secundarios: sec,
                     tipo_registro: grupo_muscular === "Cardio" ? "tiempo_distancia" : "peso_reps"
                 };
                 EXERCISES_CATALOG.unshift(newEx);
@@ -2144,92 +2283,164 @@
         }
 
         // ==========================================
-        // 10. ESTADÍSTICAS, MAPA DE CALOR Y GENERADOR DE RUTINA
+        // 10. ESTADÍSTICAS, MAPA DE CALOR GRANULAR Y GENERADOR DE RUTINA
         // ==========================================
-        const HEATMAP_MUSCLES = ["Espalda", "Pecho", "Piernas", "Hombros", "Bíceps", "Tríceps", "Abdominales", "Antebrazos"];
-
-        function getMuscleRecoveryStats() {
+        function getSubMuscleFatigueStats() {
             const todayStr = getTodayISO();
             const todayDate = new Date(todayStr + "T00:00:00");
 
-            return HEATMAP_MUSCLES.map(muscle => {
-                const logsForMuscle = workoutLogs.filter(l => {
+            return SUB_MUSCLES_META.map(sm => {
+                let maxFatigue = 0;
+                let minDaysAgo = 999;
+                let lastStimulusType = null; // "primary" | "secondary"
+
+                workoutLogs.forEach(l => {
                     const ex = EXERCISES_CATALOG.find(e => e.id === l.exerciseId);
-                    if (!ex) return false;
-                    if (ex.grupo_muscular === muscle) return true;
-                    // Peso muerto (Multiarticular) también impacta en Piernas y Espalda
-                    if (ex.grupo_muscular === "Multiarticular" && (muscle === "Piernas" || muscle === "Espalda")) return true;
-                    return false;
-                }).sort((a, b) => b.date.localeCompare(a.date));
+                    if (!ex) return;
+                    const isPrim = (ex.musculos_principales || []).includes(sm.id);
+                    const isSec = (ex.musculos_secundarios || []).includes(sm.id);
+                    if (!isPrim && !isSec) return;
 
-                if (logsForMuscle.length === 0) {
-                    return {
-                        muscle,
-                        daysAgo: 999,
-                        lastDate: null,
-                        statusLabel: "Sin registros",
-                        cardClass: "bg-cyan-950/35 border-cyan-500/35 text-cyan-300",
-                        badgeClass: "bg-cyan-500/20 text-cyan-300",
-                        dotClass: "bg-cyan-400"
-                    };
+                    const logDate = new Date(l.date + "T00:00:00");
+                    const diffDays = Math.max(0, Math.round((todayDate - logDate) / (1000 * 60 * 60 * 24)));
+                    if (diffDays > 7) return;
+
+                    const baseWeight = isPrim ? 1.0 : 0.5;
+                    // Decaimiento de fatiga: día 0 = 100%, día 1 = 75%, día 2 = 45%, día 3 = 20%, día 4+ = 0%
+                    const decayTable = [1.0, 0.75, 0.45, 0.20, 0.05];
+                    const decay = diffDays < decayTable.length ? decayTable[diffDays] : 0;
+                    const fatigueScore = Math.round(baseWeight * decay * 100);
+
+                    if (fatigueScore > maxFatigue) {
+                        maxFatigue = fatigueScore;
+                        lastStimulusType = isPrim ? "primary" : "secondary";
+                    }
+                    if (diffDays < minDaysAgo) {
+                        minDaysAgo = diffDays;
+                    }
+                });
+
+                let statusLabel = "Listo 100%";
+                let cardClass = "bg-cyan-950/40 border-cyan-500/40 text-cyan-200";
+                let badgeClass = "bg-cyan-500/20 text-cyan-300";
+                let dotClass = "bg-cyan-400";
+
+                if (maxFatigue >= 65) {
+                    statusLabel = minDaysAgo === 0 ? `Hoy (${maxFatigue}% fatiga)` : `Hace ${minDaysAgo}d • Fatiga`;
+                    cardClass = "bg-rose-950/45 border-rose-500/45 text-rose-200";
+                    badgeClass = "bg-rose-500/20 text-rose-300";
+                    dotClass = "bg-rose-500";
+                } else if (maxFatigue >= 20) {
+                    const tag = lastStimulusType === "secondary" && minDaysAgo <= 1 ? "Secundario" : `Hace ${minDaysAgo}d`;
+                    statusLabel = `${tag} (${maxFatigue}%)`;
+                    cardClass = "bg-amber-950/35 border-amber-500/40 text-amber-200";
+                    badgeClass = "bg-amber-500/20 text-amber-300";
+                    dotClass = "bg-amber-400";
+                } else if (minDaysAgo < 999) {
+                    statusLabel = `Hace ${minDaysAgo}d • Listo`;
                 }
 
-                const lastDateStr = logsForMuscle[0].date;
-                const lastDate = new Date(lastDateStr + "T00:00:00");
-                const diffDays = Math.max(0, Math.round((todayDate - lastDate) / (1000 * 60 * 60 * 24)));
-
-                if (diffDays <= 1) {
-                    return {
-                        muscle,
-                        daysAgo: diffDays,
-                        lastDate: lastDateStr,
-                        statusLabel: diffDays === 0 ? "Hoy (Fatiga)" : "Hace 1 día",
-                        cardClass: "bg-rose-950/45 border-rose-500/45 text-rose-200",
-                        badgeClass: "bg-rose-500/20 text-rose-300",
-                        dotClass: "bg-rose-500"
-                    };
-                } else if (diffDays <= 3) {
-                    return {
-                        muscle,
-                        daysAgo: diffDays,
-                        lastDate: lastDateStr,
-                        statusLabel: `Hace ${diffDays} días`,
-                        cardClass: "bg-amber-950/35 border-amber-500/40 text-amber-200",
-                        badgeClass: "bg-amber-500/20 text-amber-300",
-                        dotClass: "bg-amber-400"
-                    };
-                } else {
-                    return {
-                        muscle,
-                        daysAgo: diffDays,
-                        lastDate: lastDateStr,
-                        statusLabel: `Hace ${diffDays}d • Listo`,
-                        cardClass: "bg-cyan-950/40 border-cyan-500/40 text-cyan-200",
-                        badgeClass: "bg-cyan-500/20 text-cyan-300",
-                        dotClass: "bg-cyan-400"
-                    };
-                }
+                return {
+                    id: sm.id,
+                    label: sm.label,
+                    parent: sm.parent,
+                    fatigue: maxFatigue,
+                    daysAgo: minDaysAgo,
+                    statusLabel,
+                    cardClass,
+                    badgeClass,
+                    dotClass
+                };
             });
         }
 
+        function getParentMuscleFatigueStats(subStats) {
+            return PARENT_MUSCLES.map(parent => {
+                const children = subStats.filter(s => s.parent === parent);
+                const maxChildFatigue = Math.max(...children.map(c => c.fatigue), 0);
+                const avgChildFatigue = children.length > 0
+                    ? Math.round(children.reduce((acc, c) => acc + c.fatigue, 0) / children.length)
+                    : 0;
+                const minDays = Math.min(...children.map(c => c.daysAgo));
+                const fatiguedChildren = children.filter(c => c.fatigue >= 40);
+
+                let statusLabel = minDays < 999 ? `Hace ${minDays}d • Listo` : "Listo 100%";
+                let cardClass = "bg-cyan-950/40 border-cyan-500/40 text-cyan-200";
+                let badgeClass = "bg-cyan-500/20 text-cyan-300";
+                let dotClass = "bg-cyan-400";
+
+                // Si todos o la mayoría están fatigados -> Fatiga Alta
+                if (avgChildFatigue >= 60 || (children.length === 1 && maxChildFatigue >= 65)) {
+                    statusLabel = minDays === 0 ? "Hoy • Fatiga Alta" : `Hace ${minDays}d • Fatiga`;
+                    cardClass = "bg-rose-950/45 border-rose-500/45 text-rose-200";
+                    badgeClass = "bg-rose-500/20 text-rose-300";
+                    dotClass = "bg-rose-500";
+                } else if (maxChildFatigue >= 25) {
+                    // Ej: Lumbar trabajada ayer pero Dorsales descansados -> Parcialmente fatigado
+                    statusLabel = fatiguedChildren.length > 0 && children.length > 1
+                        ? `Parcial (${fatiguedChildren[0].label.split(" ")[0]})`
+                        : `Parcial (${maxChildFatigue}%)`;
+                    cardClass = "bg-amber-950/35 border-amber-500/40 text-amber-200";
+                    badgeClass = "bg-amber-500/20 text-amber-300";
+                    dotClass = "bg-amber-400";
+                }
+
+                return {
+                    id: parent,
+                    label: parent,
+                    parent,
+                    fatigue: avgChildFatigue,
+                    maxFatigue: maxChildFatigue,
+                    daysAgo: minDays,
+                    statusLabel,
+                    cardClass,
+                    badgeClass,
+                    dotClass
+                };
+            });
+        }
+
+        function toggleHeatmapDetail() {
+            heatmapDetailedMode = !heatmapDetailedMode;
+            smartTargetMuscles = [];
+            renderStatsView();
+        }
+
         function renderStatsView() {
-            const recovery = getMuscleRecoveryStats();
+            const subStats = getSubMuscleFatigueStats();
+            const itemsToRender = heatmapDetailedMode ? subStats : getParentMuscleFatigueStats(subStats);
+
+            // Actualizar UI del toggle Simple / Detallado
+            const toggleBtn = document.getElementById("heatmapDetailToggleBtn");
+            const toggleInd = document.getElementById("heatmapToggleIndicator");
+            const subtitleEl = document.getElementById("heatmapSubtitle");
+            if (toggleBtn && toggleInd && subtitleEl) {
+                if (heatmapDetailedMode) {
+                    toggleBtn.className = "shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-[11px] font-bold text-emerald-300 transition";
+                    toggleInd.className = "w-2 h-2 rounded-full bg-emerald-400";
+                    subtitleEl.textContent = "Vista anatómica detallada (14 subgrupos)";
+                } else {
+                    toggleBtn.className = "shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-700/80 text-[11px] font-semibold text-slate-300 hover:text-white transition";
+                    toggleInd.className = "w-2 h-2 rounded-full bg-slate-500";
+                    subtitleEl.textContent = "Vista general (activa Detallado para sub-zonas)";
+                }
+            }
 
             // Render Mapa de Calor
             const grid = document.getElementById("muscleHeatmapGrid");
-            grid.innerHTML = recovery.map(item => {
-                const isSelected = smartTargetMuscles.includes(item.muscle);
+            grid.innerHTML = itemsToRender.map(item => {
+                const isSelected = smartTargetMuscles.includes(item.id);
                 return `
-                <button type="button" onclick="toggleSmartMuscle('${item.muscle}')" class="text-left rounded-xl p-3 border transition active:scale-[0.98] ${item.cardClass} ${isSelected ? 'ring-2 ring-emerald-400' : ''}">
+                <button type="button" onclick="toggleSmartMuscle('${item.id}')" class="text-left rounded-xl p-3 border transition active:scale-[0.98] ${item.cardClass} ${isSelected ? 'ring-2 ring-emerald-400' : ''}">
                     <div class="flex items-center justify-between gap-1.5">
-                        <span class="text-xs font-extrabold text-white flex items-center gap-1.5">
+                        <span class="text-xs font-extrabold text-white flex items-center gap-1.5 truncate">
                             <span class="w-2 h-2 rounded-full shrink-0 ${item.dotClass}"></span>
-                            ${item.muscle}
+                            <span class="truncate">${item.label}</span>
                         </span>
                         ${isSelected ? `<i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>` : ''}
                     </div>
                     <div class="mt-1.5 flex items-center justify-between">
-                        <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${item.badgeClass}">${item.statusLabel}</span>
+                        <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded truncate ${item.badgeClass}">${item.statusLabel}</span>
                     </div>
                 </button>`;
             }).join("");
@@ -2238,7 +2449,7 @@
             if (smartTargetMuscles.length === 0) {
                 autoSelectColdMuscles(false);
             }
-            renderSmartMuscleChips();
+            renderSmartMuscleChips(itemsToRender);
             setSmartCount(smartExerciseCount, false);
 
             // Poblar selector de ejercicios para el gráfico (priorizando los que ya tienen registros)
@@ -2268,30 +2479,32 @@
         }
 
         function autoSelectColdMuscles(refreshUI = true) {
-            const recovery = getMuscleRecoveryStats();
-            // Ordenar por mayor cantidad de días descansados y tomar los 2 grupos principales más fríos
-            const sorted = [...recovery].sort((a, b) => b.daysAgo - a.daysAgo);
-            smartTargetMuscles = sorted.slice(0, 2).map(r => r.muscle);
+            const subStats = getSubMuscleFatigueStats();
+            const items = heatmapDetailedMode ? subStats : getParentMuscleFatigueStats(subStats);
+            const sorted = [...items].sort((a, b) => a.fatigue - b.fatigue || b.daysAgo - a.daysAgo);
+            smartTargetMuscles = sorted.slice(0, heatmapDetailedMode ? 3 : 2).map(r => r.id);
             if (refreshUI) {
                 renderStatsView();
-                showToast(`Seleccionados: ${smartTargetMuscles.join(" + ")}`);
+                const labels = smartTargetMuscles.map(id => items.find(i => i.id === id)?.label || id);
+                showToast(`Seleccionados: ${labels.join(" + ")}`);
             }
         }
 
-        function toggleSmartMuscle(muscle) {
-            if (smartTargetMuscles.includes(muscle)) {
-                smartTargetMuscles = smartTargetMuscles.filter(m => m !== muscle);
+        function toggleSmartMuscle(targetId) {
+            if (smartTargetMuscles.includes(targetId)) {
+                smartTargetMuscles = smartTargetMuscles.filter(m => m !== targetId);
             } else {
-                smartTargetMuscles.push(muscle);
+                smartTargetMuscles.push(targetId);
             }
             renderStatsView();
         }
 
-        function renderSmartMuscleChips() {
+        function renderSmartMuscleChips(itemsList) {
             const container = document.getElementById("smartRoutineMuscleChips");
-            container.innerHTML = HEATMAP_MUSCLES.map(m => {
-                const active = smartTargetMuscles.includes(m);
-                return `<button type="button" onclick="toggleSmartMuscle('${m}')" class="text-[11px] px-2.5 py-1 rounded-full border transition ${active ? 'bg-emerald-500 text-slate-950 font-bold border-emerald-400' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'}">${m}</button>`;
+            const list = itemsList || (heatmapDetailedMode ? getSubMuscleFatigueStats() : getParentMuscleFatigueStats(getSubMuscleFatigueStats()));
+            container.innerHTML = list.map(item => {
+                const active = smartTargetMuscles.includes(item.id);
+                return `<button type="button" onclick="toggleSmartMuscle('${item.id}')" class="text-[11px] px-2.5 py-1 rounded-full border transition ${active ? 'bg-emerald-500 text-slate-950 font-bold border-emerald-400' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'}">${item.label}</button>`;
             }).join("");
         }
 
@@ -2311,11 +2524,10 @@
 
         function generateSmartRoutine() {
             if (smartTargetMuscles.length === 0) {
-                return showToast("Selecciona al menos un grupo muscular");
+                return showToast("Selecciona al menos un grupo o subgrupo muscular");
             }
 
             const tierWeight = { S: 1, A: 2, B: 3, C: 4, D: 5 };
-            // Obtener los últimos ejercicios realizados por cada músculo para variar estímulos
             const recentExIds = new Set(
                 [...workoutLogs]
                     .sort((a, b) => b.date.localeCompare(a.date))
@@ -2323,14 +2535,16 @@
                     .map(l => l.exerciseId)
             );
 
-            // Construir pools ordenados por Tier (solo S, A y B) y variedad de patrón por cada músculo elegido
-            const poolsByMuscle = {};
-            smartTargetMuscles.forEach(muscle => {
-                const candidates = EXERCISES_CATALOG.filter(e =>
-                    e.grupo_muscular === muscle && ["S", "A", "B"].includes(e.tier || "A")
-                );
+            const poolsByTarget = {};
+            smartTargetMuscles.forEach(targetId => {
+                const candidates = EXERCISES_CATALOG.filter(e => {
+                    if (!["S", "A", "B"].includes(e.tier || "A")) return false;
+                    if (heatmapDetailedMode) {
+                        return (e.musculos_principales || []).includes(targetId);
+                    }
+                    return e.grupo_muscular === targetId;
+                });
 
-                // Ordenar: 1) Tier S/A/B, 2) No usado en las últimas sesiones, 3) Ligero factor aleatorio para variedad
                 candidates.sort((a, b) => {
                     const tDiff = (tierWeight[a.tier || "A"] || 3) - (tierWeight[b.tier || "A"] || 3);
                     if (tDiff !== 0) return tDiff;
@@ -2340,7 +2554,6 @@
                     return Math.random() - 0.5;
                 });
 
-                // Priorizar patrones distintos dentro del mismo grupo muscular
                 const distinctPatternList = [];
                 const remainderList = [];
                 const seenPatterns = new Set();
@@ -2354,19 +2567,20 @@
                     }
                 });
 
-                poolsByMuscle[muscle] = [...distinctPatternList, ...remainderList];
+                poolsByTarget[targetId] = [...distinctPatternList, ...remainderList];
             });
 
-            // Repartir equitativamente (round-robin) entre los grupos seleccionados
             const selected = [];
             let round = 0;
             while (selected.length < smartExerciseCount) {
                 let addedInRound = false;
-                for (const muscle of smartTargetMuscles) {
+                for (const targetId of smartTargetMuscles) {
                     if (selected.length >= smartExerciseCount) break;
-                    const pool = poolsByMuscle[muscle];
+                    const pool = poolsByTarget[targetId];
                     if (pool && pool[round]) {
-                        selected.push(pool[round].id);
+                        if (!selected.includes(pool[round].id)) {
+                            selected.push(pool[round].id);
+                        }
                         addedInRound = true;
                     }
                 }
@@ -2400,7 +2614,9 @@
             if (smartGeneratedIds.length === 0) return;
 
             if (savePermanent) {
-                const label = `Sugerida: ${smartTargetMuscles.join(" & ")}`;
+                const subStats = getSubMuscleFatigueStats();
+                const labels = smartTargetMuscles.map(id => subStats.find(s => s.id === id)?.label || id);
+                const label = `Sugerida: ${labels.join(" & ")}`;
                 const newRut = {
                     id: "rut_" + Date.now(),
                     nombre: label,
@@ -2423,7 +2639,7 @@
         function renderProgressChart() {
             const exId = document.getElementById("statsExerciseSelect").value;
             const scope = document.getElementById("statsGymScope").value;
-            const metric = document.getElementById("statsMetricSelect").value;
+            const metricSelect = document.getElementById("statsMetricSelect");
             const ex = EXERCISES_CATALOG.find(e => e.id === exId);
             const kpiRow = document.getElementById("statsKpiRow");
             const chartBox = document.getElementById("progressChartContainer");
@@ -2432,6 +2648,26 @@
 
             const isCardio = ex.tipo_registro === "tiempo_distancia";
             const isBW = isBodyweightExercise(ex);
+
+            // Adaptar selector de métricas según si es Cardio o Fuerza
+            const prevMetric = metricSelect.value;
+            if (isCardio) {
+                metricSelect.innerHTML = `
+                    <option value="distance">Distancia Total (Km)</option>
+                    <option value="duration">Tiempo Total (Min)</option>
+                    <option value="speed">Velocidad Prom. (Km/h)</option>
+                `;
+                metricSelect.value = ["distance", "duration", "speed"].includes(prevMetric) ? prevMetric : "distance";
+            } else {
+                metricSelect.innerHTML = `
+                    <option value="maxWeight">Peso Máximo (Kg)</option>
+                    <option value="volume">Volumen Total (Kg×Reps)</option>
+                    <option value="totalReps">Repeticiones Totales</option>
+                `;
+                metricSelect.value = ["maxWeight", "volume", "totalReps"].includes(prevMetric) ? prevMetric : "maxWeight";
+            }
+
+            const metric = metricSelect.value;
 
             const logs = workoutLogs
                 .filter(l => l.exerciseId === exId && (scope === "all" || l.gymId === activeGymId))
@@ -2445,22 +2681,28 @@
 
             const points = logs.map(l => {
                 let val = 0;
-                if (metric === "maxWeight") {
-                    val = (isCardio || isBW)
+                if (isCardio) {
+                    const totalMin = l.sets.reduce((acc, s) => acc + (Number(s.p) || 0), 0);
+                    const totalKm = l.sets.reduce((acc, s) => acc + (Number(s.r) || 0), 0);
+                    if (metric === "distance") val = totalKm;
+                    else if (metric === "duration") val = totalMin;
+                    else if (metric === "speed") val = totalMin > 0 ? (totalKm / (totalMin / 60)) : 0;
+                } else if (metric === "maxWeight") {
+                    val = isBW
                         ? Math.max(...l.sets.map(s => Number(s.r) || 0))
                         : Math.max(...l.sets.map(s => Number(s.p) || 0));
                 } else if (metric === "volume") {
-                    val = (isCardio || isBW)
+                    val = isBW
                         ? l.sets.reduce((acc, s) => acc + (Number(s.r) || 0), 0)
                         : l.sets.reduce((acc, s) => acc + ((Number(s.p) || 0) * (Number(s.r) || 0)), 0);
                 } else {
                     val = l.sets.reduce((acc, s) => acc + (Number(s.r) || 0), 0);
                 }
-                return { date: l.date, value: Math.round(val * 10) / 10 };
+                return { date: l.date, value: Math.round(val * 100) / 100 };
             });
 
             const unit = isCardio
-                ? (metric === "maxWeight" ? "km" : "km")
+                ? (metric === "distance" ? "km" : (metric === "duration" ? "min" : "km/h"))
                 : (isBW || metric === "totalReps" ? "reps" : "kg");
 
             const values = points.map(p => p.value);
